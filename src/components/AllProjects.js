@@ -1,5 +1,6 @@
 // AllProjects.js
-// git prac2
+// git practice
+// git prac21
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
