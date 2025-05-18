@@ -1,4 +1,9 @@
 // AllProjects.js
+<<<<<<< HEAD
+=======
+// git pract
+// git prac2
+>>>>>>> refs/remotes/origin/develop
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
