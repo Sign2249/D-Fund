@@ -7,44 +7,50 @@ import CheckProject from './CheckProject';
 import AllProjects from './AllProjects';
 import ProjectDetail from './ProjectDetail';
 
-
-
-
 function App() {
+  const navLinkStyle = {
+    textDecoration: 'none',
+    color: '#222',
+    fontWeight: 500,
+    padding: '0.5rem 1rem',
+    fontSize: '1rem',
+  };
+
   return (
     <Router>
-      <div>
-        {/* 전역 헤더 */}
-        <header style={{ padding: '1rem', backgroundColor: '#f5f5f5' }}>
-          <h1>D-Fund</h1>
-          {/* 네비게이션 버튼 */}
-          <nav>
-            <Link to="/" style={{ marginRight: '1rem' }}>🏠 홈</Link>
-            <Link to="/register" style={{ marginRight: '1rem' }}>➕ 프로젝트 등록</Link>
-            <Link to="/check" style={{ marginRight: '1rem' }}>🔍 프로젝트 조회</Link>
-            <Link to="/projects" >📋 전체 프로젝트 보기</Link>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <header style={{
+          padding: '1rem 2rem',
+          borderBottom: '1px solid #ddd',
+          fontFamily: 'Apple SD Gothic Neo, sans-serif',
+          backgroundColor: '#fff',
+        }}>
+          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>D-Fund</div>
+
+          <nav style={{ display: 'flex', gap: '1rem' }}>
+            <Link to="/" style={navLinkStyle}>홈</Link>
+            <Link to="/register" style={navLinkStyle}>프로젝트 등록</Link>
+            <Link to="/check" style={navLinkStyle}>프로젝트 조회</Link>
+            <Link to="/projects" style={navLinkStyle}>전체 프로젝트 보기</Link>
           </nav>
         </header>
 
-        {/* 라우팅 */}
-        <main style={{ padding: '2rem' }}>
+        <main style={{ padding: '2rem', flex: 1 }}>
           <Routes>
             <Route path="/" element={<Main />} />
             <Route path="/register" element={<RegisterProject />} />
             <Route path="/check" element={<CheckProject />} />
             <Route path="/projects" element={<AllProjects />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
-
           </Routes>
         </main>
 
-        {/* 전역 푸터 */}
-        <footer style={{ padding: '1rem', backgroundColor: '#eee', marginTop: '2rem' }}>
-          <p>© 2024 D-Fund. All rights reserved.</p>
+        <footer style={{ padding: '1rem', backgroundColor: '#f9f9f9', borderTop: '1px solid #ddd', textAlign: 'center' }}>
+          <p style={{ margin: 0, color: '#888' }}>© 2024 D-Fund. All rights reserved.</p>
         </footer>
       </div>
     </Router>
   );
 }
 
-export default App;
+export default App; 
