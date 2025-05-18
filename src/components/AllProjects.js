@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
-
-const CONTRACT_ADDRESS = '0xAf74F665aB915FcE4DfE87822F21717a5EFa16Cd';
+import { CONTRACT_ADDRESS } from '../web3/DFundContract'; // 추출한 계약의 주소를 그대로 사용
 
 function AllProjects() {
   const [projects, setProjects] = useState([]);

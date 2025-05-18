@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
-
-const CONTRACT_ADDRESS = '0xAf74F665aB915FcE4DfE87822F21717a5EFa16Cd';
+import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 
 function CheckProject() {
   const [projectId, setProjectId] = useState('');

@@ -1,10 +1,11 @@
-// RegisterProject.js (최신 DFund.sol 대응)
+// RegisterProject.js (최신 DFund.sol 대응 + 등록 후 이동)
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import DFundABI from '../truffle_abis/DFund.json';
+import { CONTRACT_ADDRESS } from '../web3/DFundContract';
+import { useNavigate } from 'react-router-dom';
 
-const CONTRACT_ADDRESS = '0xAf74F665aB915FcE4DfE87822F21717a5EFa16Cd';
 const PINATA_API_KEY = 'f238b0f7401c3c3028bb';
 const PINATA_SECRET_API_KEY = 'a0efd638ade333eec0f64aed2411edcbb72e98da5f6b950d5b1ad774879716d5';
 
@@ -17,6 +18,8 @@ function RegisterProject() {
   const [mainImageUrl, setMainImageUrl] = useState('');
   const [detailImageUrls, setDetailImageUrls] = useState([]);
   const [status, setStatus] = useState('');
+
+  const navigate = useNavigate(); // ✅ 등록 후 이동을 위한 hook
 
   const uploadToPinata = async (file) => {
     const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS';
@@ -83,7 +86,9 @@ function RegisterProject() {
 
       setStatus('등록 중...');
       await tx.wait();
-      setStatus('✅ 프로젝트 등록이 완료되었습니다.');
+
+      alert('✅ 프로젝트가 성공적으로 등록되었습니다!');
+      navigate('/projects'); // ✅ 전체 프로젝트 페이지로 이동
     } catch (error) {
       console.error(error);
       setStatus('❌ 등록 실패. 다시 시도해주세요.');

@@ -12,7 +12,7 @@ function App() {
     textDecoration: 'none',
     color: '#222',
     fontWeight: 500,
-    padding: '0.5rem 1rem',
+    padding: '1.5rem 1rem',
     fontSize: '1rem',
   };
 
@@ -25,7 +25,7 @@ function App() {
           fontFamily: 'Apple SD Gothic Neo, sans-serif',
           backgroundColor: '#fff',
         }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>D-Fund</div>
+          <Link to="/" style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem', textDecoration: 'none', color: '#222' }}>D-Fund</Link>
 
           <nav style={{ display: 'flex', gap: '1rem' }}>
             <Link to="/" style={navLinkStyle}>홈</Link>
