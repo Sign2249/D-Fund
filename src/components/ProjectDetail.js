@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
 
-const CONTRACT_ADDRESS = '0xC9692c583FaCC936aDE91CD0789Ff9c8d599DdF9';
+const CONTRACT_ADDRESS = '0xAf74F665aB915FcE4DfE87822F21717a5EFa16Cd';
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -26,12 +26,15 @@ function ProjectDetail() {
         }
 
         const balance = await contract.projectBalance(id);
+        const detail = await contract.getProject(id);
 
         setProject({
           id: data.id.toString(),
           creator: data.creator,
           title: data.title,
           description: data.description,
+          image: detail.image,
+          detailImages: detail.detailImages,
           goalAmount: ethers.utils.formatEther(data.goalAmount),
           deadline: new Date(data.deadline.toNumber() * 1000),
           expertReviewRequested: data.expertReviewRequested,
@@ -95,8 +98,12 @@ function ProjectDetail() {
       <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }}>{project.title}</h2>
 
       <div style={{ display: 'flex', gap: '2rem' }}>
-        <div style={{ flex: 1, minHeight: '300px', backgroundColor: '#eee', borderRadius: '8px' }}>
-          {/* 대표 이미지 공간 */}
+        <div style={{ flex: 1 }}>
+          {project.image ? (
+            <img src={project.image} alt="대표 이미지" style={{ width: '100%', borderRadius: '8px', maxHeight: '400px', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ minHeight: '300px', backgroundColor: '#eee', borderRadius: '8px' }} />
+          )}
         </div>
 
         <div style={{ flex: 1 }}>
@@ -125,7 +132,6 @@ function ProjectDetail() {
             </div>
           </div>
 
-
           <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
             <h3 style={{ marginBottom: '1rem' }}>후원하기</h3>
             <input
@@ -133,7 +139,7 @@ function ProjectDetail() {
               placeholder="후원 금액 (ETH)"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem', fontSize: '1rem' }}
+              style={{ padding: '0.5rem', width: '95%', marginBottom: '1rem', fontSize: '1rem' }}
             />
             <button
               onClick={handleFund}
@@ -152,6 +158,25 @@ function ProjectDetail() {
             </button>
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: '3rem', backgroundColor: '#f4f6fb', padding: '2rem', borderRadius: '12px' }}>
+        <div style={{ borderLeft: '5px solid #1e40af', paddingLeft: '1rem', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>프로젝트 소개</h3>
+        </div>
+
+        {project.detailImages && project.detailImages.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            {project.detailImages.map((url, idx) => (
+              <img key={idx} src={url} alt={`상세-${idx}`} style={{ maxWidth: '300px', borderRadius: '6px' }} />
+            ))}
+          </div>
+        )}
+
+        <div style={{ fontSize: '1rem', lineHeight: '1.6', color: '#333', marginBottom: '2rem' }}>
+          <p>{project.description}</p>
+        </div>
+
       </div>
     </div>
   );

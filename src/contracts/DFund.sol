@@ -9,8 +9,10 @@ contract DFund {
         address creator;
         string title;
         string description;
-        uint goalAmount;              // 단위: wei
-        uint deadline;                // Unix timestamp
+        string image;               // ✅ 대표 이미지 (선택)
+        string[] detailImages;      // ✅ 상세 이미지 배열 (선택)
+        uint goalAmount;            // 단위: wei
+        uint deadline;              // Unix timestamp
         bool expertReviewRequested;
         bool isActive;
     }
@@ -30,6 +32,8 @@ contract DFund {
     function registerProject(
         string memory _title,
         string memory _description,
+        string memory _image,             // ✅ image 파라미터 추가
+        string[] memory _detailImages,    // ✅ detailImages 파라미터 추가
         uint _goalAmount,
         uint _deadline,
         bool _expertReviewRequested
@@ -41,16 +45,20 @@ contract DFund {
 
         projectCount++;
 
-        projects[projectCount] = Project({
-            id: projectCount,
-            creator: msg.sender,
-            title: _title,
-            description: _description,
-            goalAmount: _goalAmount,
-            deadline: _deadline,
-            expertReviewRequested: _expertReviewRequested,
-            isActive: true
-        });
+        Project storage newProject = projects[projectCount];
+        newProject.id = projectCount;
+        newProject.creator = msg.sender;
+        newProject.title = _title;
+        newProject.description = _description;
+        newProject.image = _image;                     // ✅ 이미지 저장
+        newProject.goalAmount = _goalAmount;
+        newProject.deadline = _deadline;
+        newProject.expertReviewRequested = _expertReviewRequested;
+        newProject.isActive = true;
+
+        for (uint i = 0; i < _detailImages.length; i++) {
+            newProject.detailImages.push(_detailImages[i]); // ✅ 상세 이미지 배열 저장
+        }
 
         emit ProjectRegistered(
             projectCount,
@@ -62,15 +70,16 @@ contract DFund {
         );
     }
 
-    // 프로젝트 조회용 (선택)
     function getProject(uint _id) public view returns (
-    uint id,
-    address creator,
-    string memory title,
-    string memory description,
-    uint goalAmount,
-    uint deadline,
-    bool expertReviewRequested
+        uint id,
+        address creator,
+        string memory title,
+        string memory description,
+        string memory image,               // ✅ 반환값 추가
+        string[] memory detailImages,      // ✅ 반환값 추가
+        uint goalAmount,
+        uint deadline,
+        bool expertReviewRequested
     ) {
         Project memory p = projects[_id];
         return (
@@ -78,6 +87,8 @@ contract DFund {
             p.creator,
             p.title,
             p.description,
+            p.image,
+            p.detailImages,
             p.goalAmount,
             p.deadline,
             p.expertReviewRequested
@@ -97,5 +108,4 @@ contract DFund {
         require(projects[_projectId].isActive, "Invalid project");
         projectBalance[_projectId] += msg.value;
     }
-
 }

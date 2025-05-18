@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
 
-const CONTRACT_ADDRESS = '0xC9692c583FaCC936aDE91CD0789Ff9c8d599DdF9';
+const CONTRACT_ADDRESS = '0xAf74F665aB915FcE4DfE87822F21717a5EFa16Cd';
 
 function AllProjects() {
   const [projects, setProjects] = useState([]);
@@ -33,6 +33,7 @@ function AllProjects() {
               creator: p.creator,
               title: p.title,
               description: p.description,
+              image: p.image, // ✅ 대표 이미지 URL 가져오기
               goalAmount: ethers.utils.formatEther(p.goalAmount),
               deadline: new Date(p.deadline.toNumber() * 1000),
               expertReviewRequested: p.expertReviewRequested,
@@ -87,8 +88,10 @@ function AllProjects() {
               onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
               onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <div style={{ backgroundColor: '#f9f9f9', height: '180px' }}>
-                {/* 썸네일 자리 (이미지 필드 없으므로 배경색 박스로 대체) */}
+              <div style={{ backgroundColor: '#f9f9f9', height: '180px', overflow: 'hidden' }}>
+                {project.image ? ( // ✅ 대표 이미지가 있을 경우 렌더링
+                  <img src={project.image} alt="thumbnail" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                ) : null}
               </div>
               <div style={{ padding: '1rem' }}>
                 <h3 style={{ fontSize: '1.1rem', margin: '0 0 0.5rem 0' }}>{project.title}</h3>
@@ -109,6 +112,5 @@ function AllProjects() {
     </div>
   );
 }
-
 
 export default AllProjects;
