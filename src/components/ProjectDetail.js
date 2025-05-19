@@ -1,10 +1,9 @@
-// ProjectDetail.js
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
-
-const CONTRACT_ADDRESS = '0xC9692c583FaCC936aDE91CD0789Ff9c8d599DdF9';
+import { CONTRACT_ADDRESS } from '../web3/DFundContract';
+import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -19,22 +18,26 @@ function ProjectDetail() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
         const data = await contract.projects(id);
+        const detail = await contract.getProject(id);
 
         if (!data || data.title === '') {
           setStatus('프로젝트를 찾을 수 없습니다.');
           return;
         }
 
-        const balance = await contract.projectBalance(id);
+        const balance = await contract.getTotalDonated(id);
 
         setProject({
           id: data.id.toString(),
           creator: data.creator,
           title: data.title,
           description: data.description,
+          image: detail.image,
+          detailImages: detail.detailImages,
           goalAmount: ethers.utils.formatEther(data.goalAmount),
           deadline: new Date(data.deadline.toNumber() * 1000),
           expertReviewRequested: data.expertReviewRequested,
+          status: data.status
         });
 
         setFundedAmount(ethers.utils.formatEther(balance));
@@ -67,11 +70,50 @@ function ProjectDetail() {
       alert(`후원 성공! Tx Hash: ${tx.hash}`);
       setAmount('');
 
-      const updated = await contract.projectBalance(project.id);
+      const updated = await contract.getTotalDonated(project.id);
       setFundedAmount(ethers.utils.formatEther(updated));
     } catch (err) {
       console.error(err);
       alert('후원 실패');
+    }
+  };
+
+  const handleEndFunding = async () => {
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
+
+      if (userAddress.toLowerCase() !== project.creator.toLowerCase()) {
+        alert('⚠️ 프로젝트 생성자만 후원을 마감할 수 있습니다.');
+        return;
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const deadlineTimestamp = Math.floor(project.deadline.getTime() / 1000);
+      if (now <= deadlineTimestamp) {
+        alert('⚠️ 마감일 이후에만 후원을 마감할 수 있습니다.');
+        return;
+      }
+
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+      const totalDonated = await contract.getTotalDonated(project.id);
+      const goalAmount = ethers.utils.parseEther(project.goalAmount);
+
+      let tx;
+      if (totalDonated.gte(goalAmount)) {
+        tx = await contract.releaseFundsToCreator(project.id, 1);
+        alert('🎉 목표 달성! 자금이 창작자에게 전달됩니다.');
+      } else {
+        tx = await contract.changeProjectStatusAndRefund(project.id, 3);
+        alert('😢 목표 미달! 후원자에게 환불 처리됩니다.');
+      }
+
+      await tx.wait();
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert('❌ 후원 마감 중 오류 발생');
     }
   };
 
@@ -89,18 +131,30 @@ function ProjectDetail() {
   if (!project) return null;
 
   const percent = Math.floor((parseFloat(fundedAmount) / parseFloat(project.goalAmount)) * 100);
+  const isDeadlineOver = new Date() > project.deadline;
+  const canFund = isFundableStatus(project.status) && !isDeadlineOver;
 
   return (
     <div style={{ maxWidth: '960px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }}>{project.title}</h2>
 
       <div style={{ display: 'flex', gap: '2rem' }}>
-        <div style={{ flex: 1, minHeight: '300px', backgroundColor: '#eee', borderRadius: '8px' }}>
-          {/* 대표 이미지 공간 */}
+        <div style={{ flex: 1 }}>
+          {project.image ? (
+            <img src={project.image} alt="대표 이미지" style={{ width: '100%', borderRadius: '8px', maxHeight: '400px', objectFit: 'cover' }} />
+          ) : (
+            <div style={{ minHeight: '300px', backgroundColor: '#eee', borderRadius: '8px' }} />
+          )}
         </div>
 
         <div style={{ flex: 1 }}>
-          <div style={{ borderBottom: '1px solid #ddd', paddingBottom: '1rem', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
+            <p><strong>등록자:</strong> {project.creator}</p>
+            <p><strong>전문가 심사 요청:</strong> {project.expertReviewRequested ? '예' : '아니오'}</p>
+            <p><strong>상태:</strong> {getStatusLabel(project.status)}</p>
+          </div>
+
+          <div style={{ borderBottom: '1px solid #ddd', paddingBottom: '1rem', margin: '1rem 0' }}>
             <p style={{ fontSize: '0.9rem', color: '#555', marginBottom: '0.25rem' }}>모인금액</p>
             <p style={{ fontSize: '2rem', fontWeight: '600' }}>{parseFloat(fundedAmount).toLocaleString()} ETH</p>
           </div>
@@ -125,7 +179,6 @@ function ProjectDetail() {
             </div>
           </div>
 
-
           <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
             <h3 style={{ marginBottom: '1rem' }}>후원하기</h3>
             <input
@@ -133,24 +186,68 @@ function ProjectDetail() {
               placeholder="후원 금액 (ETH)"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem', fontSize: '1rem' }}
+              style={{ padding: '0.5rem', width: '95%', marginBottom: '1rem', fontSize: '1rem' }}
             />
             <button
               onClick={handleFund}
+              disabled={!canFund}
               style={{
                 width: '100%',
                 padding: '0.75rem',
                 fontSize: '1rem',
-                backgroundColor: '#1e40af',
+                backgroundColor: canFund ? '#1e40af' : '#ccc',
                 color: '#fff',
                 border: 'none',
                 borderRadius: '6px',
-                cursor: 'pointer'
+                cursor: canFund ? 'pointer' : 'not-allowed'
               }}
             >
-              후원하기
+              {canFund ? '후원하기' : '후원 불가'}
             </button>
+
+            {window.ethereum && (
+              <button
+                onClick={handleEndFunding}
+                style={{
+                  marginTop: '1rem',
+                  width: '100%',
+                  padding: '0.75rem',
+                  fontSize: '1rem',
+                  backgroundColor: '#f44336',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                ⏹️ 후원 마감
+              </button>
+            )}
           </div>
+
+          {!canFund && (
+            <p style={{ color: 'red', marginTop: '0.5rem' }}>
+              ※ 후원이 불가능합니다. {isDeadlineOver ? '마감일이 지났습니다.' : `상태: ${getStatusLabel(project.status)}`}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div style={{ marginTop: '3rem', backgroundColor: '#f4f6fb', padding: '2rem', borderRadius: '12px' }}>
+        <div style={{ borderLeft: '5px solid #1e40af', paddingLeft: '1rem', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>프로젝트 소개</h3>
+        </div>
+
+        {project.detailImages && project.detailImages.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            {project.detailImages.map((url, idx) => (
+              <img key={idx} src={url} alt={`상세-${idx}`} style={{ maxWidth: '300px', borderRadius: '6px' }} />
+            ))}
+          </div>
+        )}
+
+        <div style={{ fontSize: '1rem', lineHeight: '1.6', color: '#333', marginBottom: '2rem' }}>
+          <p>{project.description}</p>
         </div>
       </div>
     </div>
