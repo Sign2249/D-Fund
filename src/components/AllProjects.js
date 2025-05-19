@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract'; // 추출한 계약의 주소를 그대로 사용
+import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
 
 function AllProjects() {
   const [projects, setProjects] = useState([]);
@@ -25,8 +26,8 @@ function AllProjects() {
 
         for (let i = 1; i <= count; i++) {
           const p = await contract.projects(i);
-          if (p.id.toNumber() !== 0 && p.title !== '' && p.isActive) {
-            const balance = await contract.projectBalance(p.id);
+          if (p.id.toNumber() !== 0 && p.title !== '') {
+            const balance = await contract.getTotalDonated(p.id);
             loadedProjects.push({
               id: p.id.toString(),
               creator: p.creator,
@@ -34,7 +35,7 @@ function AllProjects() {
               description: p.description,
               image: p.image, // ✅ 대표 이미지 URL 가져오기
               goalAmount: ethers.utils.formatEther(p.goalAmount),
-              deadline: new Date(p.deadline.toNumber() * 1000),
+              deadline: p.deadline.toNumber(),
               expertReviewRequested: p.expertReviewRequested,
               fundedAmount: ethers.utils.formatEther(balance),
             });
@@ -54,7 +55,7 @@ function AllProjects() {
 
   const calculateDaysLeft = (deadline) => {
     const now = new Date();
-    const diff = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((deadline * 1000 - now) / (1000 * 60 * 60 * 24));
     return diff > 0 ? `${diff}일 남음` : '마감';
   };
 

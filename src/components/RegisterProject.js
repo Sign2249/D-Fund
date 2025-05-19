@@ -1,10 +1,12 @@
-// RegisterProject.js (최신 DFund.sol 대응 + 등록 후 이동)
+// RegisterProject.js (통합 버전: 이미지 업로드 + 상태 확인)
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import DFundABI from '../truffle_abis/DFund.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { useNavigate } from 'react-router-dom';
+import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
+
 
 const PINATA_API_KEY = 'f238b0f7401c3c3028bb';
 const PINATA_SECRET_API_KEY = 'a0efd638ade333eec0f64aed2411edcbb72e98da5f6b950d5b1ad774879716d5';
@@ -18,8 +20,9 @@ function RegisterProject() {
   const [mainImageUrl, setMainImageUrl] = useState('');
   const [detailImageUrls, setDetailImageUrls] = useState([]);
   const [status, setStatus] = useState('');
+  const [registeredProject, setRegisteredProject] = useState(null);
 
-  const navigate = useNavigate(); // ✅ 등록 후 이동을 위한 hook
+  const navigate = useNavigate();
 
   const uploadToPinata = async (file) => {
     const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS';
@@ -70,7 +73,6 @@ function RegisterProject() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
-
       const goalInWei = ethers.utils.parseEther(goalAmount);
       const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);
 
@@ -87,11 +89,23 @@ function RegisterProject() {
       setStatus('등록 중...');
       await tx.wait();
 
-      alert('✅ 프로젝트가 성공적으로 등록되었습니다!');
-      navigate('/projects'); // ✅ 전체 프로젝트 페이지로 이동
+      const projectCount = await contract.projectCount();
+      const project = await contract.projects(projectCount);
+
+      if (project && project.title.length > 0) {
+        setRegisteredProject({
+          id: project.id.toString(),
+          title: project.title,
+          creator: project.creator,
+        });
+        setStatus(`✅ 등록 성공! 프로젝트 ID: ${projectCount}`);
+        navigate('/projects');
+      } else {
+        setStatus('⚠️ 등록 확인 실패. 다시 시도해주세요.');
+      }
     } catch (error) {
       console.error(error);
-      setStatus('❌ 등록 실패. 다시 시도해주세요.');
+      alert('❌ 등록 실패. 다시 시도해주세요.');
     }
   };
 
@@ -132,7 +146,7 @@ function RegisterProject() {
           </div>
           <div style={{ width: '350px', paddingLeft: '1rem' }}>
             <label style={labelStyle}>마감일</label>
-            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} style={inputStyle} required />
+            <input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} style={inputStyle} required />
           </div>
         </div>
 
@@ -146,6 +160,7 @@ function RegisterProject() {
         </button>
 
         {status && <p style={{ marginTop: '1rem', color: '#333' }}>{status}</p>}
+
       </form>
     </div>
   );

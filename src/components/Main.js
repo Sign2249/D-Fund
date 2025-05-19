@@ -19,9 +19,9 @@ function Main() {
         const loaded = [];
         for (let i = 1; i <= count; i++) {
           const p = await contract.projects(i);
-          if (p.id.toNumber() !== 0 && p.title !== '' && p.isActive) {
+          if (p.id.toNumber() !== 0 && p.title !== '') {
             const detail = await contract.getProject(p.id);
-            const balance = await contract.projectBalance(p.id);
+            const balance = await contract.getTotalDonated(p.id);
             const goal = parseFloat(ethers.utils.formatEther(p.goalAmount));
             const raised = parseFloat(ethers.utils.formatEther(balance));
             const percent = goal > 0 ? Math.floor((raised / goal) * 100) : 0;
@@ -31,7 +31,7 @@ function Main() {
               description: p.description,
               goalAmount: goal,
               fundedAmount: raised,
-              deadline: new Date(p.deadline.toNumber() * 1000),
+              deadline: p.deadline.toNumber(),
               percent,
               image: detail.image, // ✅ 대표 이미지
             });
@@ -50,7 +50,7 @@ function Main() {
 
   const calculateDaysLeft = (deadline) => {
     const now = new Date();
-    const diff = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((deadline * 1000 - now) / (1000 * 60 * 60 * 24));
     return diff > 0 ? `${diff}일 남음` : '마감';
   };
 
