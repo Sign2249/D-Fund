@@ -1,4 +1,4 @@
-// Main.js (Top Projects 카드 UI 개선 + 대표 이미지 추가)
+// Main.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
