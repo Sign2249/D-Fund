@@ -152,18 +152,20 @@ function ProjectDetail() {
           ) : (
             <div style={{ minHeight: '300px', backgroundColor: '#eee', borderRadius: '8px' }} />
           )}
+          <p><strong>등록자:</strong> {project.creator}</p>
+          <p><strong>전문가 심사 요청:</strong> {project.expertReviewRequested ? '예' : '아니오'}</p>
         </div>
 
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
-            <p><strong>등록자:</strong> {project.creator}</p>
-            <p><strong>전문가 심사 요청:</strong> {project.expertReviewRequested ? '예' : '아니오'}</p>
-            <p><strong>상태:</strong> {getStatusLabel(project.status)}</p>
+            
+            
           </div>
 
           <div style={{ borderBottom: '1px solid #ddd', paddingBottom: '1rem', margin: '1rem 0' }}>
             <p style={{ fontSize: '0.9rem', color: '#555', marginBottom: '0.25rem' }}>모인금액</p>
             <p style={{ fontSize: '2rem', fontWeight: '600' }}>{parseFloat(fundedAmount).toLocaleString()} ETH</p>
+            <p> {getStatusLabel(project.status)}</p>
           </div>
 
           <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
