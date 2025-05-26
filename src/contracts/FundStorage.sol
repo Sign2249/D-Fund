@@ -35,10 +35,4 @@ abstract contract FundStorage {
     mapping(uint => mapping(address => uint)) public donorBalances;
     mapping(uint => address[]) public projectDonors;
     mapping(uint => mapping(address => bool)) public hasDonated;
-
-    // 전문가 평가 관련 상태
-    mapping(address => Expert) public expertStats;
-    mapping(uint => mapping(address => bool)) public hasReviewed;
-    mapping(uint => address[]) public reviewers;
-    mapping(uint => mapping(address => bool)) public reviewIsPositive;
 }

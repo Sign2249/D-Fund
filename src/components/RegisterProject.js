@@ -6,6 +6,9 @@ import DFundABI from '../truffle_abis/DFund.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { useNavigate } from 'react-router-dom';
 import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
+import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
+import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
+
 
 
 const PINATA_API_KEY = 'f238b0f7401c3c3028bb';
@@ -91,6 +94,17 @@ function RegisterProject() {
 
       const projectCount = await contract.projectCount();
       const project = await contract.projects(projectCount);
+
+      if (expertReviewRequested) {
+        const reviewContract = new ethers.Contract(
+          REVIEW_CONTRACT_ADDRESS,
+          ExpertReviewABI.abi,
+          signer
+        );
+      
+        const enableTx = await reviewContract.enableReview(projectCount, deadlineTimestamp);
+        await enableTx.wait();
+      }
 
       if (project && project.title.length > 0) {
         setRegisteredProject({

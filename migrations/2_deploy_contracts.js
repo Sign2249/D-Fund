@@ -1,5 +1,8 @@
 const DFund = artifacts.require("DFund");
+const ExpertReview = artifacts.require("ExpertReview");
 
-module.exports = function (deployer) {
-  deployer.deploy(DFund);
+module.exports = async function (deployer) {
+  await deployer.deploy(DFund);
+
+  await deployer.deploy(ExpertReview);
 };

@@ -5,6 +5,8 @@ import DFundABI from '../truffle_abis/DFund.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
 import { useNavigate } from 'react-router-dom';
+import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
+import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 
 
 function ProjectDetail() {
@@ -14,6 +16,8 @@ function ProjectDetail() {
   const [amount, setAmount] = useState('');
   const [fundedAmount, setFundedAmount] = useState('0');
   const navigate = useNavigate();
+  const [reviewStats, setReviewStats] = useState({ positive: 0, negative: 0 });
+  const [comments, setComments] = useState([]);
 
 
   useEffect(() => {
@@ -21,6 +25,7 @@ function ProjectDetail() {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
+        const reviewContract = new ethers.Contract(REVIEW_CONTRACT_ADDRESS, ExpertReviewABI.abi, provider);
         const data = await contract.projects(id);
         const detail = await contract.getProject(id);
 
@@ -46,6 +51,31 @@ function ProjectDetail() {
 
         setFundedAmount(ethers.utils.formatEther(balance));
         setStatus('');
+
+        try {
+          const result = await reviewContract.getReviewResult(Number(id));
+          const positive = result.positive;
+          const negative = result.negative;
+          setReviewStats({ positive: Number(positive), negative: Number(negative) });
+          try {
+            // ✅ reviewContract에서 reviewers 가져오기
+            const reviewerAddresses = await reviewContract.getReviewers(Number(id));
+            const loadedComments = [];
+          
+            for (const addr of reviewerAddresses) {
+              const comment = await reviewContract.getComment(Number(id), addr);
+              if (comment && comment.trim() !== '') {
+                loadedComments.push({ reviewer: addr, comment });
+              }
+            }
+            setComments(loadedComments);
+          } catch (err) {
+            console.error('한줄평 불러오기 실패:', err);
+          }          
+        } catch (error) {
+          console.error("리뷰 데이터 로딩 실패:", error);
+        }
+
       } catch (err) {
         console.error(err);
         setStatus('오류 발생');
@@ -161,6 +191,15 @@ function ProjectDetail() {
   
     navigate(`/project/${project.id}/expert-review`);
   };
+
+  const getReviewRatio = () => {
+    const total = reviewStats.positive + reviewStats.negative;
+    if (total === 0) return { positive: 0, negative: 0 };
+    return {
+      positive: Math.round((reviewStats.positive / total) * 100),
+      negative: Math.round((reviewStats.negative / total) * 100),
+    };
+  };
   
 
   return (
@@ -195,6 +234,31 @@ function ProjectDetail() {
           )}
           <p><strong>등록자:</strong> {project.creator}</p>
           <p><strong>전문가 심사 요청:</strong> {project.expertReviewRequested ? '예' : '아니오'}</p>
+          {project.expertReviewRequested && (
+            <div style={{ marginTop: '2rem' }}>
+              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>전문가 평가 결과</h3>
+              <div style={{ marginBottom: '0.5rem', fontSize: '0.95rem', color: '#444' }}>
+                긍정: {getReviewRatio().positive}% / 부정: {getReviewRatio().negative}%
+              </div>
+              <div style={{
+                height: '14px',
+                background: '#eee',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                display: 'flex'
+              }}>
+                <div style={{
+                  width: `${getReviewRatio().positive}%`,
+                  backgroundColor: '#10b981'
+                }} />
+                <div style={{
+                  width: `${getReviewRatio().negative}%`,
+                  backgroundColor: '#ef4444'
+                }} />
+              </div>
+            </div>
+          )}
+
         </div>
 
         <div style={{ flex: 1 }}>
@@ -300,6 +364,22 @@ function ProjectDetail() {
           <p>{project.description}</p>
         </div>
       </div>
+      {project.expertReviewRequested && comments.length > 0 && (
+  <div style={{  backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px' }}>
+    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}> 전문가 한줄평</h3>
+    <ul style={{ paddingLeft: '1rem' }}>
+      {comments.map((item, idx) => (
+        <li key={idx} style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: '#333' }}>
+          <strong style={{ color: '#666' }}>
+            {item.reviewer.slice(0, 6)}...{item.reviewer.slice(-4)}:
+          </strong>{' '}
+          {item.comment}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
     </div>
   );
 }
