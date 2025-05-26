@@ -4,6 +4,8 @@ import { ethers } from 'ethers';
 import DFundABI from '../truffle_abis/DFund.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
+import { useNavigate } from 'react-router-dom';
+
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -11,6 +13,8 @@ function ProjectDetail() {
   const [status, setStatus] = useState('로딩 중...');
   const [amount, setAmount] = useState('');
   const [fundedAmount, setFundedAmount] = useState('0');
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -141,9 +145,46 @@ function ProjectDetail() {
   const isDeadlineOver = new Date() > project.deadline;
   const canFund = isFundableStatus(project.status) && !isDeadlineOver;
 
+  const handleExpertReviewClick = () => {
+    if (!project.expertReviewRequested) {
+      alert('❌ 전문가 사전 심사를 선택하지 않은 프로젝트입니다.');
+      return;
+    }
+  
+    const now = new Date();
+    const isBeforeDeadline = now.getTime() < project.deadline.getTime() - 60000;
+  
+    if (!isBeforeDeadline) {
+      alert('⚠️ 전문가 평가는 마감 1분 전까지만 가능합니다.');
+      return;
+    }
+  
+    navigate(`/project/${project.id}/expert-review`);
+  };
+  
+
   return (
     <div style={{ maxWidth: '960px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
-      <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '1.5rem' }}>{project.title}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '2rem', fontWeight: '700', margin: 0 }}>{project.title}</h2>
+
+        <button
+          onClick={handleExpertReviewClick}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#1e40af',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '500',
+            fontSize: '0.95rem'
+          }}
+        >
+          전문가 평가
+        </button>
+      </div>
+
 
       <div style={{ display: 'flex', gap: '2rem' }}>
         <div style={{ flex: 1 }}>

@@ -6,6 +6,7 @@ import RegisterProject from './RegisterProject';
 import CheckProject from './CheckProject';
 import AllProjects from './AllProjects';
 import ProjectDetail from './ProjectDetail';
+import ExpertReviewPage from './ExpertReviewPage';
 
 function App() {
   const navLinkStyle = {
@@ -42,11 +43,12 @@ function App() {
             <Route path="/check" element={<CheckProject />} />
             <Route path="/projects" element={<AllProjects />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
+            <Route path="/project/:id/expert-review" element={<ExpertReviewPage />} />
           </Routes>
         </main>
 
         <footer style={{ padding: '1rem', backgroundColor: '#f9f9f9', borderTop: '1px solid #ddd', textAlign: 'center' }}>
-          <p style={{ margin: 0, color: '#888' }}>© 2024 D-Fund. All rights reserved.</p>
+          <p style={{ margin: 0, color: '#888' }}>© 2025 D-Fund. All rights reserved.</p>
         </footer>
       </div>
     </Router>
