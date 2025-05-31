@@ -18,15 +18,8 @@ abstract contract FundStorage {
     }
 
     struct FundBalance {
-        uint totalDonated;
-        uint transferredToCreator;
-    }
-
-    struct Expert {
-        uint positive;
-        uint negative;
-        uint predictedSuccessCount;
-        uint totalResponses;
+        uint totalDonated;          // 전체 후원 금액
+        uint transferredToCreator;  // 창작자에게 전송되는 금액
     }
 
     uint public projectCount;
