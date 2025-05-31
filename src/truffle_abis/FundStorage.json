@@ -170,7 +170,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"donorBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"hasDonated\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"projectCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"projectDonors\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"projectFunds\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"totalDonated\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"transferredToCreator\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"projects\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"title\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"image\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"goalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"expertReviewRequested\",\"type\":\"bool\"},{\"internalType\":\"enum FundStorage.ProjectStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/src/contracts/FundStorage.sol\":\"FundStorage\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/src/contracts/FundStorage.sol\":{\"keccak256\":\"0x9e26efa18962daebd25e08e9bb7d516ac5898a549a342ee32b8097addf11e69d\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://d898ca92c4641f85b27ac18a23c60816a185853a7843f127916300563ab9c16f\",\"dweb:/ipfs/QmZnD3PZFkun3AsfekJ15gaBj5jcoNVmriHC62kK1SuKyQ\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.19+commit.7dd6d404\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"donorBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"hasDonated\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"projectCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"projectDonors\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"projectFunds\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"totalDonated\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"transferredToCreator\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"projects\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"creator\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"title\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"description\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"image\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"goalAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"deadline\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"expertReviewRequested\",\"type\":\"bool\"},{\"internalType\":\"enum FundStorage.ProjectStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"project:/src/contracts/FundStorage.sol\":\"FundStorage\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"project:/src/contracts/FundStorage.sol\":{\"keccak256\":\"0xe4ab16293ae70f57c8bf8527763258326ebfe27652615b3287b7e51748c2a4d3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://73c45e3de47d29105d393cf88cede8cddc389b71d10910f693ca8ffb701b706c\",\"dweb:/ipfs/QmZfeHQqr9crrjfEmnykS4CiRQ7R4zddcR2g8j5RY8aEhc\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
@@ -178,7 +178,7 @@
   "deployedGeneratedSources": [],
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.19;\n\nabstract contract FundStorage {\n    enum ProjectStatus { FUNDRAISING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED }\n\n    struct Project {\n        uint id;\n        address creator;\n        string title;\n        string description;\n        string image;\n        string[] detailImages;\n        uint goalAmount;\n        uint deadline;\n        bool expertReviewRequested;\n        ProjectStatus status;\n    }\n\n    struct FundBalance {\n        uint totalDonated;          // 전체 후원 금액\n        uint transferredToCreator;  // 창작자에게 전송되는 금액\n    }\n\n\n\n    uint public projectCount;\n    mapping(uint => Project) public projects;\n    mapping(uint => FundBalance) public projectFunds;\n    mapping(uint => mapping(address => uint)) public donorBalances;\n    mapping(uint => address[]) public projectDonors;\n    mapping(uint => mapping(address => bool)) public hasDonated;\n}\n",
+  "source": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.19;\n\nabstract contract FundStorage {\n    enum ProjectStatus { FUNDRAISING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED }\n\n    struct Project {\n        uint id;\n        address creator;\n        string title;\n        string description;\n        string image;\n        string[] detailImages;\n        uint goalAmount;\n        uint deadline;\n        bool expertReviewRequested;\n        ProjectStatus status;\n    }\n\n    struct FundBalance {\n        uint totalDonated;          // 전체 후원 금액\n        uint transferredToCreator;  // 창작자에게 전송되는 금액\n    }\n\n    uint public projectCount;\n    mapping(uint => Project) public projects;\n    mapping(uint => FundBalance) public projectFunds;\n    mapping(uint => mapping(address => uint)) public donorBalances;\n    mapping(uint => address[]) public projectDonors;\n    mapping(uint => mapping(address => bool)) public hasDonated;\n}\n",
   "sourcePath": "/Users/kimtaewoo/Desktop/D-Fund/src/contracts/FundStorage.sol",
   "ast": {
     "absolutePath": "project:/src/contracts/FundStorage.sol",
@@ -636,10 +636,10 @@
             "id": 432,
             "mutability": "mutable",
             "name": "projectCount",
-            "nameLocation": "645:12:2",
+            "nameLocation": "643:12:2",
             "nodeType": "VariableDeclaration",
             "scope": 460,
-            "src": "633:24:2",
+            "src": "631:24:2",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -650,7 +650,7 @@
               "id": 431,
               "name": "uint",
               "nodeType": "ElementaryTypeName",
-              "src": "633:4:2",
+              "src": "631:4:2",
               "typeDescriptions": {
                 "typeIdentifier": "t_uint256",
                 "typeString": "uint256"
@@ -664,10 +664,10 @@
             "id": 437,
             "mutability": "mutable",
             "name": "projects",
-            "nameLocation": "695:8:2",
+            "nameLocation": "693:8:2",
             "nodeType": "VariableDeclaration",
             "scope": 460,
-            "src": "663:40:2",
+            "src": "661:40:2",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -682,14 +682,14 @@
                 "id": 433,
                 "name": "uint",
                 "nodeType": "ElementaryTypeName",
-                "src": "671:4:2",
+                "src": "669:4:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
               "nodeType": "Mapping",
-              "src": "663:24:2",
+              "src": "661:24:2",
               "typeDescriptions": {
                 "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_Project_$425_storage_$",
                 "typeString": "mapping(uint256 => struct FundStorage.Project)"
@@ -703,14 +703,14 @@
                   "id": 434,
                   "name": "Project",
                   "nameLocations": [
-                    "679:7:2"
+                    "677:7:2"
                   ],
                   "nodeType": "IdentifierPath",
                   "referencedDeclaration": 425,
-                  "src": "679:7:2"
+                  "src": "677:7:2"
                 },
                 "referencedDeclaration": 425,
-                "src": "679:7:2",
+                "src": "677:7:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_struct$_Project_$425_storage_ptr",
                   "typeString": "struct FundStorage.Project"
@@ -725,10 +725,10 @@
             "id": 442,
             "mutability": "mutable",
             "name": "projectFunds",
-            "nameLocation": "745:12:2",
+            "nameLocation": "743:12:2",
             "nodeType": "VariableDeclaration",
             "scope": 460,
-            "src": "709:48:2",
+            "src": "707:48:2",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -743,14 +743,14 @@
                 "id": 438,
                 "name": "uint",
                 "nodeType": "ElementaryTypeName",
-                "src": "717:4:2",
+                "src": "715:4:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
               "nodeType": "Mapping",
-              "src": "709:28:2",
+              "src": "707:28:2",
               "typeDescriptions": {
                 "typeIdentifier": "t_mapping$_t_uint256_$_t_struct$_FundBalance_$430_storage_$",
                 "typeString": "mapping(uint256 => struct FundStorage.FundBalance)"
@@ -764,14 +764,14 @@
                   "id": 439,
                   "name": "FundBalance",
                   "nameLocations": [
-                    "725:11:2"
+                    "723:11:2"
                   ],
                   "nodeType": "IdentifierPath",
                   "referencedDeclaration": 430,
-                  "src": "725:11:2"
+                  "src": "723:11:2"
                 },
                 "referencedDeclaration": 430,
-                "src": "725:11:2",
+                "src": "723:11:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_struct$_FundBalance_$430_storage_ptr",
                   "typeString": "struct FundStorage.FundBalance"
@@ -786,10 +786,10 @@
             "id": 448,
             "mutability": "mutable",
             "name": "donorBalances",
-            "nameLocation": "812:13:2",
+            "nameLocation": "810:13:2",
             "nodeType": "VariableDeclaration",
             "scope": 460,
-            "src": "763:62:2",
+            "src": "761:62:2",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -804,14 +804,14 @@
                 "id": 443,
                 "name": "uint",
                 "nodeType": "ElementaryTypeName",
-                "src": "771:4:2",
+                "src": "769:4:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
               "nodeType": "Mapping",
-              "src": "763:41:2",
+              "src": "761:41:2",
               "typeDescriptions": {
                 "typeIdentifier": "t_mapping$_t_uint256_$_t_mapping$_t_address_$_t_uint256_$_$",
                 "typeString": "mapping(uint256 => mapping(address => uint256))"
@@ -826,14 +826,14 @@
                   "id": 444,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
-                  "src": "787:7:2",
+                  "src": "785:7:2",
                   "typeDescriptions": {
                     "typeIdentifier": "t_address",
                     "typeString": "address"
                   }
                 },
                 "nodeType": "Mapping",
-                "src": "779:24:2",
+                "src": "777:24:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_mapping$_t_address_$_t_uint256_$",
                   "typeString": "mapping(address => uint256)"
@@ -844,7 +844,7 @@
                   "id": 445,
                   "name": "uint",
                   "nodeType": "ElementaryTypeName",
-                  "src": "798:4:2",
+                  "src": "796:4:2",
                   "typeDescriptions": {
                     "typeIdentifier": "t_uint256",
                     "typeString": "uint256"
@@ -860,10 +860,10 @@
             "id": 453,
             "mutability": "mutable",
             "name": "projectDonors",
-            "nameLocation": "865:13:2",
+            "nameLocation": "863:13:2",
             "nodeType": "VariableDeclaration",
             "scope": 460,
-            "src": "831:47:2",
+            "src": "829:47:2",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -878,14 +878,14 @@
                 "id": 449,
                 "name": "uint",
                 "nodeType": "ElementaryTypeName",
-                "src": "839:4:2",
+                "src": "837:4:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
               "nodeType": "Mapping",
-              "src": "831:26:2",
+              "src": "829:26:2",
               "typeDescriptions": {
                 "typeIdentifier": "t_mapping$_t_uint256_$_t_array$_t_address_$dyn_storage_$",
                 "typeString": "mapping(uint256 => address[])"
@@ -897,7 +897,7 @@
                   "id": 450,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
-                  "src": "847:7:2",
+                  "src": "845:7:2",
                   "stateMutability": "nonpayable",
                   "typeDescriptions": {
                     "typeIdentifier": "t_address",
@@ -906,7 +906,7 @@
                 },
                 "id": 451,
                 "nodeType": "ArrayTypeName",
-                "src": "847:9:2",
+                "src": "845:9:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_array$_t_address_$dyn_storage_ptr",
                   "typeString": "address[]"
@@ -921,10 +921,10 @@
             "id": 459,
             "mutability": "mutable",
             "name": "hasDonated",
-            "nameLocation": "933:10:2",
+            "nameLocation": "931:10:2",
             "nodeType": "VariableDeclaration",
             "scope": 460,
-            "src": "884:59:2",
+            "src": "882:59:2",
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
@@ -939,14 +939,14 @@
                 "id": 454,
                 "name": "uint",
                 "nodeType": "ElementaryTypeName",
-                "src": "892:4:2",
+                "src": "890:4:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_uint256",
                   "typeString": "uint256"
                 }
               },
               "nodeType": "Mapping",
-              "src": "884:41:2",
+              "src": "882:41:2",
               "typeDescriptions": {
                 "typeIdentifier": "t_mapping$_t_uint256_$_t_mapping$_t_address_$_t_bool_$_$",
                 "typeString": "mapping(uint256 => mapping(address => bool))"
@@ -961,14 +961,14 @@
                   "id": 455,
                   "name": "address",
                   "nodeType": "ElementaryTypeName",
-                  "src": "908:7:2",
+                  "src": "906:7:2",
                   "typeDescriptions": {
                     "typeIdentifier": "t_address",
                     "typeString": "address"
                   }
                 },
                 "nodeType": "Mapping",
-                "src": "900:24:2",
+                "src": "898:24:2",
                 "typeDescriptions": {
                   "typeIdentifier": "t_mapping$_t_address_$_t_bool_$",
                   "typeString": "mapping(address => bool)"
@@ -979,7 +979,7 @@
                   "id": 456,
                   "name": "bool",
                   "nodeType": "ElementaryTypeName",
-                  "src": "919:4:2",
+                  "src": "917:4:2",
                   "typeDescriptions": {
                     "typeIdentifier": "t_bool",
                     "typeString": "bool"
@@ -991,11 +991,11 @@
           }
         ],
         "scope": 461,
-        "src": "58:888:2",
+        "src": "58:886:2",
         "usedErrors": []
       }
     ],
-    "src": "32:915:2"
+    "src": "32:913:2"
   },
   "compiler": {
     "name": "solc",
@@ -1003,7 +1003,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-05-31T12:28:19.590Z",
+  "updatedAt": "2025-05-31T12:53:09.169Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

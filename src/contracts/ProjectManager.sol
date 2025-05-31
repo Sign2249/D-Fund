@@ -1,18 +1,11 @@
 // SPDX-License-Identifier: MIT
+// 프로젝트 등록 및 조회 기능
 pragma solidity ^0.8.19;
 
 import "./FundStorage.sol";
 
-abstract contract ProjectManager is FundStorage {
-    event ProjectRegistered(
-        uint indexed id,
-        address indexed creator,
-        string title,
-        uint goalAmount,
-        uint deadline,
-        bool expertReviewRequested
-    );
-
+abstract contract ProjectManager is FundStorage {       // FundStorage에서 정의된 변수들 상속받아 사용
+    
     function registerProject(
         string memory _title,
         string memory _description,
@@ -39,9 +32,7 @@ abstract contract ProjectManager is FundStorage {
         newProject.goalAmount = _goalAmount;
         newProject.deadline = _deadline;
         newProject.expertReviewRequested = _expertReviewRequested;
-        newProject.status = ProjectStatus.FUNDRAISING;
-
-        emit ProjectRegistered(projectCount, msg.sender, _title, _goalAmount, _deadline, _expertReviewRequested);
+        newProject.status = ProjectStatus.FUNDRAISING;   
     }
 
     function getProject(uint _id) public view returns (Project memory) {
