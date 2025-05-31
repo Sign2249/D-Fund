@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// 프로젝트 기본 형식
 pragma solidity ^0.8.19;
 
 abstract contract FundStorage {
@@ -23,9 +24,9 @@ abstract contract FundStorage {
     }
 
     uint public projectCount;
-    mapping(uint => Project) public projects;
-    mapping(uint => FundBalance) public projectFunds;
-    mapping(uint => mapping(address => uint)) public donorBalances;
-    mapping(uint => address[]) public projectDonors;
-    mapping(uint => mapping(address => bool)) public hasDonated;
+    mapping(uint => Project) public projects;                       // 프로젝트의 전체 정보
+    mapping(uint => FundBalance) public projectFunds;               // 후원 금액 관련 정보
+    mapping(uint => mapping(address => uint)) public donorBalances; // 특정 프로젝트에 특정 주소가 얼마를 후원했는지
+    mapping(uint => address[]) public projectDonors;                // 후원한 사람들의 주소 목록
+    mapping(uint => mapping(address => bool)) public hasDonated;    // 해당 주소가 해당 프로젝트에 최소 한 번 이상 후원한 이력이 있는지
 }

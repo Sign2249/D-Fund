@@ -7,7 +7,7 @@ import "./FundStorage.sol";
 abstract contract ProjectManager is FundStorage {       // FundStorage에서 정의된 변수들 상속받아 사용
     
     function registerProject(
-        string memory _title,
+        string memory _title,                           // 참조 타입(string, byte, array, struct)을 인자로 받을 때는 memory를 써야함
         string memory _description,
         string memory _image,
         string[] memory _detailImages,
@@ -35,13 +35,13 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         newProject.status = ProjectStatus.FUNDRAISING;   
     }
 
-    function getProject(uint _id) public view returns (Project memory) {
+    function getProject(uint _id) public view returns (Project memory) { // 반환값도 구조체 형식이기 때문에 memory 사용
         return projects[_id];
     }
 
     function getAllProjects() public view returns (Project[] memory) {
-        Project[] memory result = new Project[](projectCount);
-        for (uint i = 1; i <= projectCount; i++) {
+        Project[] memory result = new Project[](projectCount);          // result는 참조타입이고 임시변수이기 때문에 memory 사용
+        for (uint i = 1; i <= projectCount; i++) {                      // projectCount 길이를 가진 빈 Project 배열을 메모리에 생성하고, 그 배열을 result라는 변수에 저장
             result[i - 1] = projects[i];
         }
         return result;

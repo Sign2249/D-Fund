@@ -1,15 +1,14 @@
 // RegisterProject.js (통합 버전: 이미지 업로드 + 상태 확인)
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import axios from 'axios';
+
 import DFundABI from '../truffle_abis/DFund.json';
-import { CONTRACT_ADDRESS } from '../web3/DFundContract';
-import { useNavigate } from 'react-router-dom';
-import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
+import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
+import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
-
-
 
 const PINATA_API_KEY = 'f238b0f7401c3c3028bb';
 const PINATA_SECRET_API_KEY = 'a0efd638ade333eec0f64aed2411edcbb72e98da5f6b950d5b1ad774879716d5';
