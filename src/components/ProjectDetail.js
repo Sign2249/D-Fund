@@ -1,13 +1,13 @@
+// ProjectDetail.js
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate} from 'react-router-dom';
 import { ethers } from 'ethers';
-import DFundABI from '../truffle_abis/DFund.json';
-import { CONTRACT_ADDRESS } from '../web3/DFundContract';
-import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
-import { useNavigate } from 'react-router-dom';
-import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
-import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 
+import DFundABI from '../truffle_abis/DFund.json';
+import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
+import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
+import { CONTRACT_ADDRESS } from '../web3/DFundContract';
+import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -15,10 +15,10 @@ function ProjectDetail() {
   const [status, setStatus] = useState('로딩 중...');
   const [amount, setAmount] = useState('');
   const [fundedAmount, setFundedAmount] = useState('0');
-  const navigate = useNavigate();
   const [reviewStats, setReviewStats] = useState({ positive: 0, negative: 0 });
   const [comments, setComments] = useState([]);
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -26,39 +26,39 @@ function ProjectDetail() {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
         const reviewContract = new ethers.Contract(REVIEW_CONTRACT_ADDRESS, ExpertReviewABI.abi, provider);
-        const data = await contract.projects(id);
         const detail = await contract.getProject(id);
+        const balance = await contract.getTotalDonated(id);
 
-        if (!data || data.title === '') {
+        if (!detail || detail.title === '') {
           setStatus('프로젝트를 찾을 수 없습니다.');
           return;
         }
 
-        const balance = await contract.getTotalDonated(id);
-
+        // 프로젝트 설정
         setProject({
-          id: data.id.toString(),
-          creator: data.creator,
-          title: data.title,
-          description: data.description,
+          id: detail.id.toString(),
+          creator: detail.creator,
+          title: detail.title,
+          description: detail.description,
           image: detail.image,
           detailImages: detail.detailImages,
-          goalAmount: ethers.utils.formatEther(data.goalAmount),
-          deadline: new Date(data.deadline.toNumber() * 1000),
-          expertReviewRequested: data.expertReviewRequested,
-          status: data.status
+          goalAmount: ethers.utils.formatEther(detail.goalAmount),
+          deadline: new Date(detail.deadline.toNumber() * 1000),
+          expertReviewRequested: detail.expertReviewRequested,
+          status: detail.status
         });
 
         setFundedAmount(ethers.utils.formatEther(balance));
         setStatus('');
 
+        // 전문가 평가 설정
         try {
           const result = await reviewContract.getReviewResult(Number(id));
           const positive = result.positive;
           const negative = result.negative;
           setReviewStats({ positive: Number(positive), negative: Number(negative) });
           try {
-            // ✅ reviewContract에서 reviewers 가져오기
+            // reviewContract에서 reviewers 가져오기
             const reviewerAddresses = await reviewContract.getReviewers(Number(id));
             const loadedComments = [];
           
@@ -75,16 +75,38 @@ function ProjectDetail() {
         } catch (error) {
           console.error("리뷰 데이터 로딩 실패:", error);
         }
-
       } catch (err) {
         console.error(err);
         setStatus('오류 발생');
       }
     };
-
     fetchProject();
   }, [id]);
 
+  const calculateDaysLeft = (deadline) => {
+    const now = new Date();
+    const diff = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? `${diff}일` : '마감';
+  };
+
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+  
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+  };
+  
+  if (status) return <p>{status}</p>;
+  if (!project) return null;
+
+  const percent = Math.floor((parseFloat(fundedAmount) / parseFloat(project.goalAmount)) * 100);
+  const isDeadlineOver = new Date() > project.deadline;
+  const canFund = isFundableStatus(project.status) && !isDeadlineOver;
+
+  // 후원하기 버튼 기능
   const handleFund = async () => {
     if (!window.ethereum) {
       alert('Metamask가 필요합니다.');
@@ -112,6 +134,7 @@ function ProjectDetail() {
     }
   };
 
+  // 후원 마감 버튼 기능
   const handleEndFunding = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -150,31 +173,7 @@ function ProjectDetail() {
       alert('❌ 후원 마감 중 오류 발생');
     }
   };
-
-  const calculateDaysLeft = (deadline) => {
-    const now = new Date();
-    const diff = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? `${diff}일` : '마감';
-  };
-
-  const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hour = String(date.getHours()).padStart(2, '0');
-    const minute = String(date.getMinutes()).padStart(2, '0');
   
-    return `${year}-${month}-${day} ${hour}:${minute}`;
-  };
-  
-
-  if (status) return <p>{status}</p>;
-  if (!project) return null;
-
-  const percent = Math.floor((parseFloat(fundedAmount) / parseFloat(project.goalAmount)) * 100);
-  const isDeadlineOver = new Date() > project.deadline;
-  const canFund = isFundableStatus(project.status) && !isDeadlineOver;
-
   const handleExpertReviewClick = async () => {
     if (!project.expertReviewRequested) {
       alert('❌ 전문가 사전 심사를 선택하지 않은 프로젝트입니다.');
@@ -209,6 +208,7 @@ function ProjectDetail() {
     }
   };
 
+  // 전문가 평가 긍정 부정 비율
   const getReviewRatio = () => {
     const total = reviewStats.positive + reviewStats.negative;
     if (total === 0) return { positive: 0, negative: 0 };
@@ -351,14 +351,14 @@ function ProjectDetail() {
                   cursor: 'pointer',
                 }}
               >
-                ⏹️ 후원 마감
+                후원 마감
               </button>
             )}
           </div>
 
           {!canFund && (
             <p style={{ color: 'red', marginTop: '0.5rem' }}>
-              ※ 후원이 불가능합니다. {isDeadlineOver ? '마감일이 지났습니다.' : `상태: ${getStatusLabel(project.status)}`}
+              후원이 불가능합니다. {isDeadlineOver ? '마감일이 지났습니다.' : `상태: ${getStatusLabel(project.status)}`}
             </p>
           )}
         </div>

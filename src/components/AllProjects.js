@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
+
 import DFundABI from '../truffle_abis/DFund.json';
-import { CONTRACT_ADDRESS } from '../web3/DFundContract'; // 추출한 계약의 주소를 그대로 사용
-import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
+import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 
 function AllProjects() {
   const [projects, setProjects] = useState([]);
@@ -33,7 +33,7 @@ function AllProjects() {
               creator: p.creator,
               title: p.title,
               description: p.description,
-              image: p.image, // ✅ 대표 이미지 URL 가져오기
+              image: p.image,
               goalAmount: ethers.utils.formatEther(p.goalAmount),
               deadline: p.deadline.toNumber(),
               expertReviewRequested: p.expertReviewRequested,
@@ -71,7 +71,6 @@ function AllProjects() {
       }}>
         {projects.map((project) => {
           const percent = Math.floor((parseFloat(project.fundedAmount) / parseFloat(project.goalAmount)) * 100);
-
           return (
             <Link
               key={project.id}
@@ -89,7 +88,7 @@ function AllProjects() {
               onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
             >
               <div style={{ backgroundColor: '#f9f9f9', height: '180px', overflow: 'hidden' }}>
-                {project.image ? ( // ✅ 대표 이미지가 있을 경우 렌더링
+                {project.image ? ( // 대표 이미지가 있을 경우 렌더링
                   <img src={project.image} alt="thumbnail" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
                 ) : null}
               </div>

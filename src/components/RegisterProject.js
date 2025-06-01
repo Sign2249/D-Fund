@@ -1,4 +1,4 @@
-// RegisterProject.js (통합 버전: 이미지 업로드 + 상태 확인)
+// RegisterProject.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
