@@ -377,9 +377,10 @@ function ProjectDetail() {
           </div>
         )}
 
-        <div style={{ fontSize: '1rem', lineHeight: '1.6', color: '#333', marginBottom: '2rem' }}>
-          <p>{project.description}</p>
-        </div>
+      <div
+        style={{ fontSize: '1rem', lineHeight: '1.6', color: '#333', marginBottom: '2rem' }}
+        dangerouslySetInnerHTML={{ __html: project.description }}
+      />
       </div>
       {project.expertReviewRequested && comments.length > 0 && (
   <div style={{  backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px' }}>

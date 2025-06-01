@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import axios from 'axios';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 import DFundABI from '../truffle_abis/DFund.json';
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
@@ -132,7 +134,13 @@ function RegisterProject() {
 
         <div>
           <label style={labelStyle}>프로젝트 설명</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={8} style={{ ...inputStyle, resize: 'vertical' }} required />
+          <ReactQuill
+            value={description}
+            onChange={setDescription}
+            theme="snow"
+            style={{ height: '200px', marginBottom: '2rem' }}
+          />
+         
         </div>
 
         <div>
