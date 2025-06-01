@@ -6,6 +6,16 @@ import "./FundStorage.sol";
 
 abstract contract ProjectManager is FundStorage {       // FundStorage에서 정의된 변수들 상속받아 사용
     
+    event ProjectRegistered(
+        uint indexed id,
+        address indexed creator,
+        string title,
+        uint goalAmount,
+        uint deadline,
+        bool expertReviewRequested
+    );
+
+    // 프로젝트 등록
     function registerProject(
         string memory _title,                           // 참조 타입(string, byte, array, struct)을 인자로 받을 때는 memory를 써야함
         string memory _description,
@@ -33,8 +43,11 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         newProject.deadline = _deadline;
         newProject.expertReviewRequested = _expertReviewRequested;
         newProject.status = ProjectStatus.FUNDRAISING;   
+
+        emit ProjectRegistered(projectCount, msg.sender, _title, _goalAmount, _deadline, _expertReviewRequested);
     }
 
+    //프로젝트 조회
     function getProject(uint _id) public view returns (Project memory) { // 반환값도 구조체 형식이기 때문에 memory 사용
         return projects[_id];
     }

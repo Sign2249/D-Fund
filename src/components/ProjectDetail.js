@@ -175,7 +175,7 @@ function ProjectDetail() {
   const isDeadlineOver = new Date() > project.deadline;
   const canFund = isFundableStatus(project.status) && !isDeadlineOver;
 
-  const handleExpertReviewClick = () => {
+  const handleExpertReviewClick = async () => {
     if (!project.expertReviewRequested) {
       alert('❌ 전문가 사전 심사를 선택하지 않은 프로젝트입니다.');
       return;
@@ -189,7 +189,24 @@ function ProjectDetail() {
       return;
     }
   
-    navigate(`/project/${project.id}/expert-review`);
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
+  
+      const reviewContract = new ethers.Contract(REVIEW_CONTRACT_ADDRESS, ExpertReviewABI.abi, provider);
+      const alreadyReviewed = await reviewContract.hasReviewerVoted(Number(project.id), userAddress);
+  
+      if (alreadyReviewed) {
+        alert('✅ 이미 평가한 전문가입니다. 중복 평가는 불가능합니다.');
+        return;
+      }
+  
+      navigate(`/project/${project.id}/expert-review`);
+    } catch (err) {
+      console.error('전문가 평가 여부 확인 오류:', err);
+      alert('❌ 전문가 평가 확인 중 오류가 발생했습니다.');
+    }
   };
 
   const getReviewRatio = () => {

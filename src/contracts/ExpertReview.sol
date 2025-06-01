@@ -10,7 +10,7 @@ contract ExpertReview {
     }
 
     mapping(uint => ReviewInfo) private projectReviews;
-    mapping(uint => address[]) private reviewers; // ✅ 리뷰어 주소 목록
+    mapping(uint => address[]) private reviewers;
     mapping(uint => uint) public projectDeadline;
     mapping(uint => bool) public isReviewEnabled;
 
