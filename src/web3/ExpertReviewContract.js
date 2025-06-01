@@ -1,6 +1,7 @@
 import ExpertReviewArtifact from '../truffle_abis/ExpertReview.json';
 
-const NETWORK_ID = '5777'; // 또는 현재 사용하는 네트워크 ID
+// truffle migrate --reset할 때마다 변경되는 계약 주소를 자동으로 추출
+const NETWORK_ID = '5777'; // Ganache or your current network ID
 const CONTRACT_ADDRESS = ExpertReviewArtifact.networks[NETWORK_ID]?.address;
 
 if (!CONTRACT_ADDRESS) {

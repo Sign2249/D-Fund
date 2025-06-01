@@ -6,10 +6,10 @@ import axios from 'axios';
 
 import DFundABI from '../truffle_abis/DFund.json';
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
-import { ProjectStatus, isFundableStatus, getStatusLabel } from '../utils/statusUtils';  // 프로젝트 진행 상태를 문자로 표현
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 
+// IPFS
 const PINATA_API_KEY = 'f238b0f7401c3c3028bb';
 const PINATA_SECRET_API_KEY = 'a0efd638ade333eec0f64aed2411edcbb72e98da5f6b950d5b1ad774879716d5';
 
@@ -22,7 +22,6 @@ function RegisterProject() {
   const [mainImageUrl, setMainImageUrl] = useState('');
   const [detailImageUrls, setDetailImageUrls] = useState([]);
   const [status, setStatus] = useState('');
-  const [registeredProject, setRegisteredProject] = useState(null);
 
   const navigate = useNavigate();
 
@@ -47,6 +46,7 @@ function RegisterProject() {
     }
   };
 
+  // 대표 이미지 파일 업로드
   const handleMainImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -54,6 +54,7 @@ function RegisterProject() {
     if (url) setMainImageUrl(url);
   };
 
+  // 상세 이미지 파일 업로드
   const handleDetailImagesChange = async (e) => {
     const files = Array.from(e.target.files);
     const urls = [];
@@ -64,19 +65,20 @@ function RegisterProject() {
     setDetailImageUrls(urls);
   };
 
+  // 등록하기 버튼 클릭 시
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault();   //폼의 기본 동작(페이지 새로고침) 차단
     if (!window.ethereum) {
       alert('Metamask가 필요합니다.');
       return;
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
-      const goalInWei = ethers.utils.parseEther(goalAmount);
-      const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);                // 메타마스크와 연결된 이더리움 네트워크 인터페이스 (읽기 전용)
+      const signer = provider.getSigner();                                                // 현재 연결된 계정 (지갑 주소)의 서명자 객체
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);       
+      const goalInWei = ethers.utils.parseEther(goalAmount);                              // 사용자 입력값 (ETH)을 Wei 단위로 변환
+      const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);          // 날짜를 Unix timestamp(초 단위)로 변환
 
       const tx = await contract.registerProject(
         title,
@@ -89,11 +91,12 @@ function RegisterProject() {
       );
 
       setStatus('등록 중...');
-      await tx.wait();
+      await tx.wait();  // 트랜잭션이 블록에 채굴될 때까지 대기
 
       const projectCount = await contract.projectCount();
       const project = await contract.projects(projectCount);
-
+      
+      // 전문가 사전 심사 요청시 처리
       if (expertReviewRequested) {
         const reviewContract = new ethers.Contract(
           REVIEW_CONTRACT_ADDRESS,
@@ -105,12 +108,8 @@ function RegisterProject() {
         await enableTx.wait();
       }
 
+      // 최종 확인 및 이동
       if (project && project.title.length > 0) {
-        setRegisteredProject({
-          id: project.id.toString(),
-          title: project.title,
-          creator: project.creator,
-        });
         setStatus(`✅ 등록 성공! 프로젝트 ID: ${projectCount}`);
         navigate('/projects');
       } else {

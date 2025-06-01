@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// 프로젝트 후원 및 환불, 출금 기능
 pragma solidity ^0.8.19;
 
 import "./FundStorage.sol";
