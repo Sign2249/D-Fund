@@ -10,25 +10,25 @@ function Main() {
   const [account, setAccount] = useState(null); // ✅ 메타마스크 계정 상태
   const navigate = useNavigate();
 
+  const connectWallet = async () => {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          setAccount(accounts[0]);
+        } catch (err) {
+          alert('지갑 연결에 실패했습니다: ' + err.message);
+        }
+      } else {
+        alert('메타마스크가 설치되어 있지 않습니다.');
+      }
+    };
+
   useEffect(() => {
     const loadTopProjects = async () => {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
         const count = await contract.projectCount();
-
-        const connectWallet = async () => {
-            if (window.ethereum) {
-              try {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                setAccount(accounts[0]);
-              } catch (err) {
-                alert('지갑 연결에 실패했습니다: ' + err.message);
-              }
-            } else {
-              alert('메타마스크가 설치되어 있지 않습니다.');
-            }
-          };
 
         const loaded = [];
         for (let i = 1; i <= count; i++) {
