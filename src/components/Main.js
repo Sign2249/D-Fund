@@ -133,7 +133,6 @@ function Main() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.85rem', color: '#666' }}>
                 <span>{calculateDaysLeft(p.deadline)}</span>
-                <span style={{ backgroundColor: '#eef2ff', color: '#4f46e5', padding: '0.2rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>Active</span>
               </div>
             </div>
           </div>
