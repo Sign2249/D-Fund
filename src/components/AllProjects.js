@@ -94,6 +94,8 @@ function AllProjects() {
               </div>
               <div style={{ padding: '1rem' }}>
                 <h3 style={{ fontSize: '1.1rem', margin: '0 0 0.5rem 0' }}>{project.title}</h3>
+                <p style={{ fontSize: '0.9rem', color: '#666', minHeight: '48px' }}>{project.description}</p>
+
                 <div style={{ marginTop: '1rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
                   <span style={{ color: 'crimson' }}>{percent}%</span>
                   &nbsp; {project.fundedAmount} ETH 모금
