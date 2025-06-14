@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 
 import "./FundStorage.sol";
 
-abstract contract ProjectManager is FundStorage {       // FundStorage에서 정의된 변수들 상속받아 사용 
+abstract contract ProjectManager is FundStorage {       // FundStorage에서 정의된 변수들 상속받아 사용
     
     event ProjectRegistered(
         uint indexed id,
