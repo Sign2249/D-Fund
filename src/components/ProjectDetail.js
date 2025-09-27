@@ -8,6 +8,9 @@ import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
 import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
+import VotingPowerNFTABI from "../truffle_abis/VotingPowerNFT.json";
+import { CONTRACT_ADDRESS as VOTING_NFT_ADDRESS } from "../web3/VotingPowerNFTContract";
+
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -18,6 +21,7 @@ function ProjectDetail() {
   const [reviewStats, setReviewStats] = useState({ positive: 0, negative: 0 });
   const [comments, setComments] = useState([]);
   const [rewards, setRewards] = useState([]);
+  const [myNFTs, setMyNFTs] = useState([]);
 
   const navigate = useNavigate();
 
@@ -230,6 +234,36 @@ function ProjectDetail() {
     };
   };
   
+const handleCheckMyNFTs = async () => {
+  if (!window.ethereum) {
+    alert("Metamask가 필요합니다.");
+    return;
+  }
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const user = await signer.getAddress();
+
+    const nft = new ethers.Contract(
+      VOTING_NFT_ADDRESS,
+      VotingPowerNFTABI.abi,
+      provider
+    );
+
+    // ✅ 원래 값 (정수)
+    const rawPower = await nft.votingPower(project.id, user);
+
+    // ✅ 10^9로 나눠서 소수점으로 변환
+    const formattedPower = (Number(rawPower.toString()) / 1e9).toFixed(9);
+
+    // 상태에 반영
+    setMyNFTs([{ power: formattedPower }]);
+  } catch (err) {
+    console.error("NFT 조회 오류:", err);
+    alert("NFT 조회 실패");
+  }
+};
+
 
   return (
     <div style={{ maxWidth: '960px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
@@ -421,6 +455,30 @@ function ProjectDetail() {
             )}
           </div>
 
+          <div style={{ marginTop: "2rem" }}>
+            <button
+              onClick={handleCheckMyNFTs}
+              style={{
+                padding: "0.75rem 1.5rem",
+                backgroundColor: "#4caf50",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              내 Voting Power 확인하기
+            </button>
+
+            {myNFTs.length > 0 && (
+              <div style={{ marginTop: "1.5rem" }}>
+                <p style={{ fontSize: "1.1rem", fontWeight: "700", color: "#222" }}>
+                  Voting Power: {myNFTs[0].power}
+                </p>
+              </div>
+            )}
+          </div>
 
           {!canFund && (
             <p style={{ color: 'red', marginTop: '0.5rem' }}>
@@ -462,6 +520,8 @@ function ProjectDetail() {
       ))}
     </ul>
   </div>
+
+  
 )}
 
     </div>

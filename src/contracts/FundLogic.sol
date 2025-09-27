@@ -88,7 +88,7 @@ abstract contract FundLogic is FundStorage {
         return f.totalDonated - f.transferredToCreator;
     }
 
-    function donateWithReward(uint _projectId, uint _rewardIndex) external payable {
+    function donateWithReward(uint _projectId, uint _rewardIndex) external payable virtual {
         Reward memory r = projectRewards[_projectId][_rewardIndex];
         require(msg.value == r.price, "ETH must match reward price");
 
