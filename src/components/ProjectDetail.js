@@ -44,10 +44,15 @@ function ProjectDetail() {
           image: detail.image,
           detailImages: detail.detailImages,
           goalAmount: ethers.utils.formatEther(detail.goalAmount),
-          deadline: new Date(detail.deadline.toNumber() * 1000),
+
+          startDate: detail.startDate ? new Date(detail.startDate.toNumber() * 1000) : null,
+          endDate: detail.endDate ? new Date(detail.endDate.toNumber() * 1000) : null,
+          deadline: detail.deadline ? new Date(detail.deadline.toNumber() * 1000) : null,
+
           expertReviewRequested: detail.expertReviewRequested,
           status: detail.status
         });
+
 
         setFundedAmount(ethers.utils.formatEther(balance));
         setStatus('');
@@ -298,15 +303,19 @@ function ProjectDetail() {
           </div>
 
           <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
+            {/* 달성률 */}
             <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
               <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>달성률</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>{percent}%</span>
+              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
+                {percent}%
+              </span>
               <span style={{ fontSize: '0.85rem', color: '#888' }}>
                 목표금액 {parseFloat(project.goalAmount).toLocaleString()} ETH
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+            {/* 남은기간 */}
+            <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
               <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>남은기간</span>
               <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
                 {calculateDaysLeft(project.deadline)}
@@ -315,8 +324,27 @@ function ProjectDetail() {
                 {formatDate(project.deadline)}에 종료
               </span>
             </div>
-          </div>
 
+            {/* 시작일 */}
+            {project.startDate && (
+              <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
+                <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>프로젝트 시작</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
+                  {formatDate(project.startDate)}
+                </span>
+              </div>
+            )}
+
+            {/* 종료일 */}
+            {project.endDate && (
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>프로젝트 마감</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
+                  {formatDate(project.endDate)}
+                </span>
+              </div>
+            )}
+          </div>
 
           <div style={{ marginTop: '2rem' }}>
             <h3 style={{ marginBottom: '1rem', fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif', fontWeight: '700' }}>

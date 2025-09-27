@@ -10,7 +10,7 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         uint indexed id,
         address indexed creator,
         string title,
-        uint goalAmount,
+        uint goalAmount,      
         uint deadline,
         bool expertReviewRequested
     );
@@ -22,6 +22,8 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         string memory _image,
         string[] memory _detailImages,
         uint _goalAmount,
+        uint _startDate,      // 추가
+        uint _endDate,        // 추가
         uint _deadline,
         bool _expertReviewRequested,
         Reward[] memory _rewards   // 추가
@@ -41,6 +43,8 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         newProject.image = _image;
         newProject.detailImages = _detailImages;
         newProject.goalAmount = _goalAmount;
+        newProject.startDate = _startDate;   // 저장
+        newProject.endDate = _endDate;       // 저장
         newProject.deadline = _deadline;
         newProject.expertReviewRequested = _expertReviewRequested;
         newProject.status = ProjectStatus.FUNDRAISING;   

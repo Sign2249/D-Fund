@@ -20,6 +20,8 @@ function RegisterProject() {
   const [description, setDescription] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [expertReviewRequested, setExpertReviewRequested] = useState(false);
   const [mainImageUrl, setMainImageUrl] = useState('');
   const [detailImageUrls, setDetailImageUrls] = useState([]);
@@ -82,18 +84,22 @@ function RegisterProject() {
       const signer = provider.getSigner();                                                // 현재 연결된 계정 (지갑 주소)의 서명자 객체
       const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);       
       const goalInWei = ethers.utils.parseEther(goalAmount);                              // 사용자 입력값 (ETH)을 Wei 단위로 변환
+      const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+      const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);                
       const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);          // 날짜를 Unix timestamp(초 단위)로 변환
       const rewardData = rewards.map(r => ({
         name: r.name,
         price: ethers.utils.parseEther(r.price || "0")
       }));
-      
+
       const tx = await contract.registerProject(
         title,
         description,
         mainImageUrl || '',
         detailImageUrls || [],
         goalInWei,
+        startTimestamp,   // 시작일
+        endTimestamp,     // 마감일
         deadlineTimestamp,
         expertReviewRequested,
         rewardData
@@ -172,10 +178,34 @@ function RegisterProject() {
             <input type="number" value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} style={inputStyle} required />
           </div>
           <div style={{ width: '350px', paddingLeft: '1rem' }}>
-            <label style={labelStyle}>마감일</label>
+            <label style={labelStyle}>후원 마감일</label>
             <input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} style={inputStyle} required />
           </div>
         </div>
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+          <div style={{ width: '350px', paddingLeft: '1rem' }}>
+            <label style={labelStyle}>프로젝트 시작일</label>
+            <input
+              type="datetime-local"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={{ width: '350px', paddingLeft: '1rem' }}>
+            <label style={labelStyle}>프로젝트 마감일</label>
+            <input
+              type="datetime-local"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={inputStyle}
+              required
+            />
+          </div>
+        </div>
+
 
         <div>
           <label style={labelStyle}>리워드 목록</label>

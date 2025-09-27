@@ -13,6 +13,8 @@ abstract contract FundStorage {
         string image;
         string[] detailImages;
         uint goalAmount;
+        uint startDate;    // 프로젝트 시작일
+        uint endDate;      // 프로젝트 마감일
         uint deadline;
         bool expertReviewRequested;
         ProjectStatus status;
