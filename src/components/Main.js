@@ -1,145 +1,105 @@
-// Main.js
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
-import DFundABI from '../truffle_abis/DFund.json';
-import { CONTRACT_ADDRESS } from '../web3/DFundContract';
+// src/components/Main.js
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { ArrowRight } from "lucide-react";
+import Hero from "./Hero";
+import ProjectCard from "./ProjectCard";
 
-function Main() {
+export default function Main() {
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadTopProjects = async () => {
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
-        const count = await contract.projectCount();
-
-        const loaded = [];
-        for (let i = 1; i <= count; i++) {
-          const p = await contract.projects(i);
-          if (p.id.toNumber() !== 0 && p.title !== '') {
-            const detail = await contract.getProject(p.id);
-            const balance = await contract.getTotalDonated(p.id);
-            const goal = parseFloat(ethers.utils.formatEther(p.goalAmount));
-            const raised = parseFloat(ethers.utils.formatEther(balance));
-            const percent = goal > 0 ? Math.floor((raised / goal) * 100) : 0;
-            loaded.push({
-              id: p.id.toString(),
-              title: p.title,
-              description: p.description,
-              goalAmount: goal,
-              fundedAmount: raised,
-              deadline: p.deadline.toNumber(),
-              percent,
-              image: detail.image, // ✅ 대표 이미지
-            });
-          }
-        }
-
-        const top3 = loaded.sort((a, b) => b.percent - a.percent).slice(0, 3);
-        setProjects(top3);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    loadTopProjects();
+    const mockProjects = [
+      {
+        id: "1",
+        title: "AI 기반 스마트 농업 솔루션",
+        description: "인공지능과 IoT를 활용하여 농작물의 생장 환경을 자동으로 최적화하는 혁신적인 농업 기술을 개발합니다.",
+        goalAmount: 50,
+        fundedAmount: 32.5,
+        percent: 65,
+        deadline: Date.now() / 1000 + 15 * 24 * 60 * 60,
+        image: "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=600&h=300&fit=crop",
+        backerCount: 156,
+        category: "Technology",
+      },
+      {
+        id: "2",
+        title: "친환경 해양 정화 드론",
+        description: "바다의 플라스틱 쓰레기를 자동으로 수거하는 AI 드론 시스템으로 해양 환경을 보호합니다.",
+        goalAmount: 75,
+        fundedAmount: 68.2,
+        percent: 91,
+        deadline: Date.now() / 1000 + 8 * 24 * 60 * 60,
+        image: "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=600&h=300&fit=crop",
+        backerCount: 243,
+        category: "Environment",
+      },
+      {
+        id: "3",
+        title: "블록체인 교육 플랫폼",
+        description: "누구나 쉽게 배울 수 있는 인터랙티브 블록체인 교육 콘텐츠와 실습 환경을 제공합니다.",
+        goalAmount: 30,
+        fundedAmount: 12.8,
+        percent: 43,
+        deadline: Date.now() / 1000 + 22 * 24 * 60 * 60,
+        image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=600&h=300&fit=crop",
+        backerCount: 89,
+        category: "Education",
+      },
+    ];
+    setProjects(mockProjects);
   }, []);
 
-  const calculateDaysLeft = (deadline) => {
-    const now = new Date();
-    const diff = Math.ceil((deadline * 1000 - now) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? `${diff}일 남음` : '마감';
-  };
+  const handleGetStarted = () => navigate("/register");
+  const handleViewAllProjects = () => navigate("/projects");
+  const handleProjectClick = (id) => navigate(`/project/${id}`);
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.25rem', fontWeight: '700' }}>Empower Ideas, Fund the Future</h1>
-        <p style={{ fontSize: '1.1rem', color: '#555' }}>
-          D-Fund is a decentralized crowdfunding platform built on Ethereum.<br />
-          Register your project, get support, and make an impact!
-        </p>
-        <button
-          onClick={() => navigate('/register')}
-          style={{
-            marginTop: '1.5rem',
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            border: 'none',
-            borderRadius: '9999px',
-            backgroundColor: '#6366f1',
-            color: '#fff',
-            cursor: 'pointer',
-          }}
-        >
-          Get Started
-        </button>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: '600' }}>Top Projects</h2>
-        <span onClick={() => navigate('/projects')} style={{ fontSize: '0.95rem', color: '#4f46e5', cursor: 'pointer' }}>모든 프로젝트 보기 →</span>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: '1.5rem',
-        }}
-      >
-        {projects.map((p) => (
-          <div
-            key={p.id}
-            onClick={() => navigate(`/project/${p.id}`)}
-            style={{
-              border: '1px solid #e5e7eb',
-              borderRadius: '1rem',
-              overflow: 'hidden',
-              backgroundColor: '#fff',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-              cursor: 'pointer'
-            }}
+    <div className="min-h-screen bg-gradient-to-b from-[#eaefff] via-[#f6f0ff] to-[#ffffff]">
+          <Hero onGetStarted={handleGetStarted} />
+          
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="flex items-center justify-between mb-12">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">인기 프로젝트</h2>
+            <p className="text-muted-foreground">커뮤니티에서 가장 주목받는 혁신적인 프로젝트들을 확인해보세요</p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleViewAllProjects}
+            className="group border-primary/30 text-primary hover:bg-primary/10"
           >
-            <div style={{ height: '160px', position: 'relative' }}>
-              {p.image && (
-                <img src={p.image} alt="썸네일" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              )}
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-                padding: '0.5rem 1rem',
-                color: '#fff',
-                background: 'linear-gradient(to top, rgba(0,0,0,0.5), rgba(0,0,0,0))',
-                fontWeight: '600'
-              }}>
-                {p.percent}% Funded
-              </div>
-            </div>
-            <div style={{ padding: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>{p.title}</h3>
-              
-              <div style={{ height: '6px', backgroundColor: '#e5e7eb', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
-                <div style={{ width: `${p.percent}%`, backgroundColor: '#6366f1', height: '100%' }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#666' }}>
-                <span>{p.fundedAmount} ETH raised</span>
-                <span>{p.goalAmount} ETH goal</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.85rem', color: '#666' }}>
-                <span>{calculateDaysLeft(p.deadline)}</span>
-              </div>
+            모든 프로젝트 보기
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {projects.map((p) => (
+            <ProjectCard key={p.id} {...p} onClick={() => handleProjectClick(p.id)} />
+          ))}
+        </div>
+
+        <div className="mt-20 text-center">
+          <div className="bg-gradient-to-r from-card to-card/50 border border-card-border rounded-2xl p-12">
+            <h3 className="text-2xl font-bold text-foreground mb-4">혁신적인 아이디어가 있으신가요?</h3>
+            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+              D-Fund에서 프로젝트를 시작하고, 전 세계 커뮤니티의 지원을 받아보세요. 
+              블록체인 기술로 투명하고 안전한 펀딩이 가능합니다.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" onClick={handleGetStarted} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8">
+                프로젝트 시작하기
+              </Button>
+              <Button variant="outline" size="lg" className="border-accent/30 text-accent hover:bg-accent/10">
+                자세히 알아보기
+              </Button>
             </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
 }
-
-export default Main;

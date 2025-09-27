@@ -34,7 +34,7 @@ function App() {
           </nav>
         </header>
 
-        <main style={{ padding: '2rem', flex: 1 }}>
+        <main className="flex-1 p-0 m-0">
           <Routes>
             <Route path="/" element={<Main />} />
             <Route path="/register" element={<RegisterProject />} />
