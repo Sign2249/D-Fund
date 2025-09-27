@@ -17,6 +17,7 @@ function ProjectDetail() {
   const [fundedAmount, setFundedAmount] = useState('0');
   const [reviewStats, setReviewStats] = useState({ positive: 0, negative: 0 });
   const [comments, setComments] = useState([]);
+  const [rewards, setRewards] = useState([]);
 
   const navigate = useNavigate();
 
@@ -50,6 +51,15 @@ function ProjectDetail() {
 
         setFundedAmount(ethers.utils.formatEther(balance));
         setStatus('');
+
+        // 리워드 불러오기
+        try {
+          const rewardsData = await contract.getProjectRewards(id);
+          setRewards(rewardsData);
+        } catch (err) {
+          console.warn("리워드 불러오기 실패:", err);
+        }
+
 
         // 전문가 평가 설정
         try {
@@ -106,26 +116,23 @@ function ProjectDetail() {
   const isDeadlineOver = new Date() > project.deadline;
   const canFund = isFundableStatus(project.status) && !isDeadlineOver;
 
-  // 후원하기 버튼 기능
-  const handleFund = async () => {
+// ✅ 리워드 선택 후 후원
+  const handleFundWithReward = async (rewardIndex, rewardPrice) => {
     if (!window.ethereum) {
       alert('Metamask가 필요합니다.');
       return;
     }
-
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
 
-      const tx = await contract.donateToProject(project.id, {
-        value: ethers.utils.parseEther(amount),
+      const tx = await contract.donateWithReward(project.id, rewardIndex, {
+        value: rewardPrice
       });
-
       await tx.wait();
-      alert(`후원 성공! Tx Hash: ${tx.hash}`);
-      setAmount('');
 
+      alert('리워드 후원 성공!');
       const updated = await contract.getTotalDonated(project.id);
       setFundedAmount(ethers.utils.formatEther(updated));
     } catch (err) {
@@ -310,51 +317,82 @@ function ProjectDetail() {
             </div>
           </div>
 
-          <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-            <h3 style={{ marginBottom: '1rem' }}>후원하기</h3>
-            <input
-              type="number"
-              placeholder="후원 금액 (ETH)"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              style={{ padding: '0.5rem', width: '95%', marginBottom: '1rem', fontSize: '1rem' }}
-            />
-            <button
-              onClick={handleFund}
-              disabled={!canFund}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                backgroundColor: canFund ? '#1e40af' : '#ccc',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: canFund ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {canFund ? '후원하기' : '후원 불가'}
-            </button>
+
+          <div style={{ marginTop: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem', fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif', fontWeight: '700' }}>
+              리워드 선택 후원하기
+            </h3>
+            {canFund ? (
+              rewards.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {rewards.map((r, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleFundWithReward(idx, r.price)} // ✅ 카드 전체 클릭
+                      style={{
+                        border: '1px solid #ddd',
+                        borderRadius: '0', // ✅ 네모 박스
+                        padding: '1.5rem',
+                        backgroundColor: '#fff',
+                        fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s, transform 0.15s',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fafafa';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fff';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>
+                            {r.name}
+                          </h4>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
+                            {ethers.utils.formatEther(r.price)} ETH
+                          </p>
+                          {/* 수량 제한을 나중에 추가할 경우 우측에 표시 */}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>등록된 리워드가 없습니다.</p>
+              )
+            ) : (
+              <p style={{ color: 'red' }}>
+                후원이 불가능합니다. {isDeadlineOver ? '마감일이 지났습니다.' : `상태: ${getStatusLabel(project.status)}`}
+              </p>
+            )}
 
             {window.ethereum && (
               <button
                 onClick={handleEndFunding}
                 style={{
-                  marginTop: '1rem',
+                  marginTop: '1.5rem',
                   width: '100%',
-                  padding: '0.75rem',
+                  padding: '1rem',
                   fontSize: '1rem',
                   backgroundColor: '#f44336',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '0', // ✅ 네모 스타일
                   cursor: 'pointer',
+                  fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
                 }}
               >
                 후원 마감
               </button>
             )}
           </div>
+
 
           {!canFund && (
             <p style={{ color: 'red', marginTop: '0.5rem' }}>

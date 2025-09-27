@@ -87,4 +87,18 @@ abstract contract FundLogic is FundStorage {
         FundBalance memory f = projectFunds[_projectId];
         return f.totalDonated - f.transferredToCreator;
     }
+
+    function donateWithReward(uint _projectId, uint _rewardIndex) external payable {
+        Reward memory r = projectRewards[_projectId][_rewardIndex];
+        require(msg.value == r.price, "ETH must match reward price");
+
+        donorBalances[_projectId][msg.sender] += msg.value;
+        projectFunds[_projectId].totalDonated += msg.value;
+
+        if (!hasDonated[_projectId][msg.sender]) {
+            projectDonors[_projectId].push(msg.sender);
+            hasDonated[_projectId][msg.sender] = true;
+        }
+    }
+
 }

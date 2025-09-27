@@ -24,6 +24,8 @@ function RegisterProject() {
   const [mainImageUrl, setMainImageUrl] = useState('');
   const [detailImageUrls, setDetailImageUrls] = useState([]);
   const [status, setStatus] = useState('');
+  const [rewards, setRewards] = useState([{ name: '', price: '' }]);
+
 
   const navigate = useNavigate();
 
@@ -81,7 +83,11 @@ function RegisterProject() {
       const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);       
       const goalInWei = ethers.utils.parseEther(goalAmount);                              // 사용자 입력값 (ETH)을 Wei 단위로 변환
       const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);          // 날짜를 Unix timestamp(초 단위)로 변환
-
+      const rewardData = rewards.map(r => ({
+        name: r.name,
+        price: ethers.utils.parseEther(r.price || "0")
+      }));
+      
       const tx = await contract.registerProject(
         title,
         description,
@@ -89,7 +95,8 @@ function RegisterProject() {
         detailImageUrls || [],
         goalInWei,
         deadlineTimestamp,
-        expertReviewRequested
+        expertReviewRequested,
+        rewardData
       );
 
       setStatus('등록 중...');
@@ -169,6 +176,44 @@ function RegisterProject() {
             <input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} style={inputStyle} required />
           </div>
         </div>
+
+        <div>
+          <label style={labelStyle}>리워드 목록</label>
+          {rewards.map((reward, index) => (
+            <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+              <input
+                type="text"
+                placeholder="리워드 이름"
+                value={reward.name}
+                onChange={(e) => {
+                  const updated = [...rewards];
+                  updated[index].name = e.target.value;
+                  setRewards(updated);
+                }}
+                style={inputStyle}
+              />
+              <input
+                type="number"
+                placeholder="금액 (ETH)"
+                value={reward.price}
+                onChange={(e) => {
+                  const updated = [...rewards];
+                  updated[index].price = e.target.value;
+                  setRewards(updated);
+                }}
+                style={inputStyle}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setRewards([...rewards, { name: '', price: '' }])}
+            style={{ padding: '0.5rem', backgroundColor: '#ddd', border: 'none', borderRadius: '6px' }}
+          >
+            + 리워드 추가
+          </button>
+        </div>
+
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <input type="checkbox" checked={expertReviewRequested} onChange={() => setExpertReviewRequested(!expertReviewRequested)} />

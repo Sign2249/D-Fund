@@ -23,6 +23,13 @@ abstract contract FundStorage {
         uint transferredToCreator;  // 창작자에게 전송되는 금액
     }
 
+    struct Reward {
+    string name;      // 리워드 이름 (예: 얼리버드, 듀오)
+    uint price;       // 리워드 금액 (ETH 단위, Wei로 저장)
+    }
+
+    mapping(uint => Reward[]) public projectRewards;
+
     uint public projectCount;
     mapping(uint => Project) public projects;                       // 프로젝트의 전체 정보
     mapping(uint => FundBalance) public projectFunds;               // 후원 금액 관련 정보

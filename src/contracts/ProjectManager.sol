@@ -23,7 +23,8 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         string[] memory _detailImages,
         uint _goalAmount,
         uint _deadline,
-        bool _expertReviewRequested
+        bool _expertReviewRequested,
+        Reward[] memory _rewards   // 추가
     ) public {
         require(bytes(_title).length > 0, "Title is required.");
         require(bytes(_description).length > 0, "Description is required.");
@@ -44,12 +45,23 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         newProject.expertReviewRequested = _expertReviewRequested;
         newProject.status = ProjectStatus.FUNDRAISING;   
 
+        for (uint i = 0; i < _rewards.length; i++) {
+                projectRewards[projectCount].push(
+                    Reward({ name: _rewards[i].name, price: _rewards[i].price })
+                );
+            }
+
         emit ProjectRegistered(projectCount, msg.sender, _title, _goalAmount, _deadline, _expertReviewRequested);
     }
 
     //프로젝트 조회
     function getProject(uint _id) public view returns (Project memory) { // 반환값도 구조체 형식이기 때문에 memory 사용
         return projects[_id];
+    }
+
+    // ✅ 리워드 조회 추가
+    function getProjectRewards(uint _id) public view returns (Reward[] memory) {
+        return projectRewards[_id];
     }
 
     function getAllProjects() public view returns (Project[] memory) {
