@@ -8,6 +8,9 @@ import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
 import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
+import VotingPowerNFTABI from "../truffle_abis/VotingPowerNFT.json";
+import { CONTRACT_ADDRESS as VOTING_NFT_ADDRESS } from "../web3/VotingPowerNFTContract";
+
 
 function ProjectDetail() {
   const { id } = useParams();
@@ -17,6 +20,8 @@ function ProjectDetail() {
   const [fundedAmount, setFundedAmount] = useState('0');
   const [reviewStats, setReviewStats] = useState({ positive: 0, negative: 0 });
   const [comments, setComments] = useState([]);
+  const [rewards, setRewards] = useState([]);
+  const [myNFTs, setMyNFTs] = useState([]);
 
   const navigate = useNavigate();
 
@@ -43,13 +48,27 @@ function ProjectDetail() {
           image: detail.image,
           detailImages: detail.detailImages,
           goalAmount: ethers.utils.formatEther(detail.goalAmount),
-          deadline: new Date(detail.deadline.toNumber() * 1000),
+
+          startDate: detail.startDate ? new Date(detail.startDate.toNumber() * 1000) : null,
+          endDate: detail.endDate ? new Date(detail.endDate.toNumber() * 1000) : null,
+          deadline: detail.deadline ? new Date(detail.deadline.toNumber() * 1000) : null,
+
           expertReviewRequested: detail.expertReviewRequested,
           status: detail.status
         });
 
+
         setFundedAmount(ethers.utils.formatEther(balance));
         setStatus('');
+
+        // 리워드 불러오기
+        try {
+          const rewardsData = await contract.getProjectRewards(id);
+          setRewards(rewardsData);
+        } catch (err) {
+          console.warn("리워드 불러오기 실패:", err);
+        }
+
 
         // 전문가 평가 설정
         try {
@@ -106,26 +125,23 @@ function ProjectDetail() {
   const isDeadlineOver = new Date() > project.deadline;
   const canFund = isFundableStatus(project.status) && !isDeadlineOver;
 
-  // 후원하기 버튼 기능
-  const handleFund = async () => {
+// ✅ 리워드 선택 후 후원
+  const handleFundWithReward = async (rewardIndex, rewardPrice) => {
     if (!window.ethereum) {
       alert('Metamask가 필요합니다.');
       return;
     }
-
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
 
-      const tx = await contract.donateToProject(project.id, {
-        value: ethers.utils.parseEther(amount),
+      const tx = await contract.donateWithReward(project.id, rewardIndex, {
+        value: rewardPrice
       });
-
       await tx.wait();
-      alert(`후원 성공! Tx Hash: ${tx.hash}`);
-      setAmount('');
 
+      alert('리워드 후원 성공!');
       const updated = await contract.getTotalDonated(project.id);
       setFundedAmount(ethers.utils.formatEther(updated));
     } catch (err) {
@@ -218,6 +234,36 @@ function ProjectDetail() {
     };
   };
   
+const handleCheckMyNFTs = async () => {
+  if (!window.ethereum) {
+    alert("Metamask가 필요합니다.");
+    return;
+  }
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const user = await signer.getAddress();
+
+    const nft = new ethers.Contract(
+      VOTING_NFT_ADDRESS,
+      VotingPowerNFTABI.abi,
+      provider
+    );
+
+    // ✅ 원래 값 (정수)
+    const rawPower = await nft.votingPower(project.id, user);
+
+    // ✅ 10^9로 나눠서 소수점으로 변환
+    const formattedPower = (Number(rawPower.toString()) / 1e9).toFixed(9);
+
+    // 상태에 반영
+    setMyNFTs([{ power: formattedPower }]);
+  } catch (err) {
+    console.error("NFT 조회 오류:", err);
+    alert("NFT 조회 실패");
+  }
+};
+
 
   return (
     <div style={{ maxWidth: '960px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
@@ -291,15 +337,19 @@ function ProjectDetail() {
           </div>
 
           <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
+            {/* 달성률 */}
             <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
               <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>달성률</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>{percent}%</span>
+              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
+                {percent}%
+              </span>
               <span style={{ fontSize: '0.85rem', color: '#888' }}>
                 목표금액 {parseFloat(project.goalAmount).toLocaleString()} ETH
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+            {/* 남은기간 */}
+            <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
               <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>남은기간</span>
               <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
                 {calculateDaysLeft(project.deadline)}
@@ -308,51 +358,125 @@ function ProjectDetail() {
                 {formatDate(project.deadline)}에 종료
               </span>
             </div>
+
+            {/* 시작일 */}
+            {project.startDate && (
+              <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
+                <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>프로젝트 시작</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
+                  {formatDate(project.startDate)}
+                </span>
+              </div>
+            )}
+
+            {/* 종료일 */}
+            {project.endDate && (
+              <div style={{ display: 'flex', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>프로젝트 마감</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
+                  {formatDate(project.endDate)}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#fafafa' }}>
-            <h3 style={{ marginBottom: '1rem' }}>후원하기</h3>
-            <input
-              type="number"
-              placeholder="후원 금액 (ETH)"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              style={{ padding: '0.5rem', width: '95%', marginBottom: '1rem', fontSize: '1rem' }}
-            />
-            <button
-              onClick={handleFund}
-              disabled={!canFund}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                backgroundColor: canFund ? '#1e40af' : '#ccc',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: canFund ? 'pointer' : 'not-allowed'
-              }}
-            >
-              {canFund ? '후원하기' : '후원 불가'}
-            </button>
+          <div style={{ marginTop: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem', fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif', fontWeight: '700' }}>
+              리워드 선택 후원하기
+            </h3>
+            {canFund ? (
+              rewards.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {rewards.map((r, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleFundWithReward(idx, r.price)} // ✅ 카드 전체 클릭
+                      style={{
+                        border: '1px solid #ddd',
+                        borderRadius: '0', // ✅ 네모 박스
+                        padding: '1.5rem',
+                        backgroundColor: '#fff',
+                        fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s, transform 0.15s',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fafafa';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#fff';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>
+                            {r.name}
+                          </h4>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
+                            {ethers.utils.formatEther(r.price)} ETH
+                          </p>
+                          {/* 수량 제한을 나중에 추가할 경우 우측에 표시 */}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>등록된 리워드가 없습니다.</p>
+              )
+            ) : (
+              <p style={{ color: 'red' }}>
+                후원이 불가능합니다. {isDeadlineOver ? '마감일이 지났습니다.' : `상태: ${getStatusLabel(project.status)}`}
+              </p>
+            )}
 
             {window.ethereum && (
               <button
                 onClick={handleEndFunding}
                 style={{
-                  marginTop: '1rem',
+                  marginTop: '1.5rem',
                   width: '100%',
-                  padding: '0.75rem',
+                  padding: '1rem',
                   fontSize: '1rem',
                   backgroundColor: '#f44336',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '6px',
+                  borderRadius: '0', // ✅ 네모 스타일
                   cursor: 'pointer',
+                  fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
                 }}
               >
                 후원 마감
               </button>
+            )}
+          </div>
+
+          <div style={{ marginTop: "2rem" }}>
+            <button
+              onClick={handleCheckMyNFTs}
+              style={{
+                padding: "0.75rem 1.5rem",
+                backgroundColor: "#4caf50",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              내 Voting Power 확인하기
+            </button>
+
+            {myNFTs.length > 0 && (
+              <div style={{ marginTop: "1.5rem" }}>
+                <p style={{ fontSize: "1.1rem", fontWeight: "700", color: "#222" }}>
+                  Voting Power: {myNFTs[0].power}
+                </p>
+              </div>
             )}
           </div>
 
@@ -396,6 +520,8 @@ function ProjectDetail() {
       ))}
     </ul>
   </div>
+
+  
 )}
 
     </div>
