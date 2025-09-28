@@ -150,6 +150,35 @@ function ProjectDetail() {
     }
   };
 
+  // ✅ 금액 직접 입력 후 후원
+const handleFund = async () => {
+  // ... (위에 있는 두 번째 코드의 함수 내용과 동일)
+  if (!window.ethereum || !amount) {
+    alert('Metamask가 필요하거나 후원 금액을 입력해야 합니다.');
+    return;
+  }
+
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+
+    const tx = await contract.donateToProject(project.id, {
+      value: ethers.utils.parseEther(amount),
+    });
+
+    await tx.wait();
+    alert(`후원 성공!`);
+    setAmount(''); // 입력창 비우기
+
+    const updated = await contract.getTotalDonated(project.id);
+    setFundedAmount(ethers.utils.formatEther(updated));
+  } catch (err) {
+    console.error(err);
+    alert('후원 실패');
+  }
+};
+
   // 후원 마감 버튼 기능
   const handleEndFunding = async () => {
     try {
@@ -265,30 +294,27 @@ const handleCheckMyNFTs = async () => {
 };
 
 
-  return (
+   return (
     <div style={{ maxWidth: '960px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
+      {/* --- 프로젝트 제목 및 전문가 평가 버튼 --- */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '2rem', fontWeight: '700', margin: 0 }}>{project.title}</h2>
-
         <button
           onClick={handleExpertReviewClick}
           style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#1e40af',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: '500',
-            fontSize: '0.95rem'
+            padding: '0.5rem 1rem', backgroundColor: '#1e40af', color: '#fff',
+            border: 'none', borderRadius: '6px', cursor: 'pointer',
+            fontWeight: '500', fontSize: '0.95rem'
           }}
         >
           전문가 평가
         </button>
       </div>
 
-
+      {/* --- 메인 레이아웃 (좌/우 2단) --- */}
       <div style={{ display: 'flex', gap: '2rem' }}>
+        
+        {/* === 왼쪽 컬럼: 이미지 및 정보 === */}
         <div style={{ flex: 1 }}>
           {project.image ? (
             <img src={project.image} alt="대표 이미지" style={{ width: '100%', borderRadius: '8px', maxHeight: '400px', objectFit: 'cover' }} />
@@ -303,33 +329,16 @@ const handleCheckMyNFTs = async () => {
               <div style={{ marginBottom: '0.5rem', fontSize: '0.95rem', color: '#444' }}>
                 긍정: {getReviewRatio().positive}% / 부정: {getReviewRatio().negative}%
               </div>
-              <div style={{
-                height: '14px',
-                background: '#eee',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                display: 'flex'
-              }}>
-                <div style={{
-                  width: `${getReviewRatio().positive}%`,
-                  backgroundColor: '#10b981'
-                }} />
-                <div style={{
-                  width: `${getReviewRatio().negative}%`,
-                  backgroundColor: '#ef4444'
-                }} />
+              <div style={{ height: '14px', background: '#eee', borderRadius: '8px', overflow: 'hidden', display: 'flex' }}>
+                <div style={{ width: `${getReviewRatio().positive}%`, backgroundColor: '#10b981' }} />
+                <div style={{ width: `${getReviewRatio().negative}%`, backgroundColor: '#ef4444' }} />
               </div>
             </div>
           )}
-
         </div>
 
+        {/* === 오른쪽 컬럼: 펀딩 상태 및 후원하기 === */}
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
-            
-            
-          </div>
-
           <div style={{ borderBottom: '1px solid #ddd', paddingBottom: '1rem', margin: '1rem 0' }}>
             <p style={{ fontSize: '0.9rem', color: '#555', marginBottom: '0.25rem' }}>모인금액</p>
             <p style={{ fontSize: '2rem', fontWeight: '600' }}>{parseFloat(fundedAmount).toLocaleString()} ETH</p>
@@ -337,52 +346,35 @@ const handleCheckMyNFTs = async () => {
           </div>
 
           <div style={{ fontSize: '0.95rem', color: '#666', lineHeight: '1.8' }}>
-            {/* 달성률 */}
             <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
               <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>달성률</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
-                {percent}%
-              </span>
-              <span style={{ fontSize: '0.85rem', color: '#888' }}>
-                목표금액 {parseFloat(project.goalAmount).toLocaleString()} ETH
-              </span>
+              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>{percent}%</span>
+              <span style={{ fontSize: '0.85rem', color: '#888' }}>목표금액 {parseFloat(project.goalAmount).toLocaleString()} ETH</span>
             </div>
-
-            {/* 남은기간 */}
             <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
               <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>남은기간</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
-                {calculateDaysLeft(project.deadline)}
-              </span>
-              <span style={{ fontSize: '0.85rem', color: '#888' }}>
-                {formatDate(project.deadline)}에 종료
-              </span>
+              <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>{calculateDaysLeft(project.deadline)}</span>
+              <span style={{ fontSize: '0.85rem', color: '#888' }}>{formatDate(project.deadline)}에 종료</span>
             </div>
-
-            {/* 시작일 */}
             {project.startDate && (
               <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '0.25rem' }}>
                 <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>프로젝트 시작</span>
-                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
-                  {formatDate(project.startDate)}
-                </span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>{formatDate(project.startDate)}</span>
               </div>
             )}
-
-            {/* 종료일 */}
             {project.endDate && (
               <div style={{ display: 'flex', alignItems: 'baseline' }}>
                 <span style={{ fontWeight: '500', marginRight: '0.5rem' }}>프로젝트 마감</span>
-                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>
-                  {formatDate(project.endDate)}
-                </span>
+                <span style={{ fontSize: '1.25rem', fontWeight: '700', marginRight: '0.5rem', color: '#222' }}>{formatDate(project.endDate)}</span>
               </div>
             )}
           </div>
 
+          {/* --- ✅✅✅ 여기에 합쳐진 후원 기능 전체를 넣습니다 ✅✅✅ --- */}
           <div style={{ marginTop: '2rem' }}>
+            {/* --- 1. 리워드 선택 후원하기 UI --- */}
             <h3 style={{ marginBottom: '1rem', fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif', fontWeight: '700' }}>
-              리워드 선택 후원하기
+              리워드 선택하여 후원하기
             </h3>
             {canFund ? (
               rewards.length > 0 ? (
@@ -390,37 +382,17 @@ const handleCheckMyNFTs = async () => {
                   {rewards.map((r, idx) => (
                     <div
                       key={idx}
-                      onClick={() => handleFundWithReward(idx, r.price)} // ✅ 카드 전체 클릭
+                      onClick={() => handleFundWithReward(idx, r.price)}
                       style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '0', // ✅ 네모 박스
-                        padding: '1.5rem',
-                        backgroundColor: '#fff',
-                        fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s, transform 0.15s',
+                        border: '1px solid #ddd', borderRadius: '0', padding: '1.5rem',
+                        cursor: 'pointer', transition: 'background-color 0.2s, transform 0.15s',
                       }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fafafa';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fff';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#fafafa'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.transform = 'translateY(0)'; }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>
-                            {r.name}
-                          </h4>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
-                            {ethers.utils.formatEther(r.price)} ETH
-                          </p>
-                          {/* 수량 제한을 나중에 추가할 경우 우측에 표시 */}
-                        </div>
+                        <h4 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{r.name}</h4>
+                        <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>{ethers.utils.formatEther(r.price)} ETH</p>
                       </div>
                     </div>
                   ))}
@@ -434,43 +406,63 @@ const handleCheckMyNFTs = async () => {
               </p>
             )}
 
-            {window.ethereum && (
-              <button
-                onClick={handleEndFunding}
-                style={{
-                  marginTop: '1.5rem',
-                  width: '100%',
-                  padding: '1rem',
-                  fontSize: '1rem',
-                  backgroundColor: '#f44336',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '0', // ✅ 네모 스타일
-                  cursor: 'pointer',
-                  fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
-                }}
-              >
-                후원 마감
-              </button>
-            )}
+            {/* --- 2. 금액 직접 입력하여 후원하기 UI --- */}
+            <div style={{ marginTop: '2.5rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif', fontWeight: '700' }}>
+                자유롭게 후원하기
+              </h3>
+              <div style={{ border: '1px solid #ddd', padding: '1.5rem' }}>
+                <input
+                  type="number"
+                  placeholder="후원 금액 (ETH)"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  style={{ padding: '0.75rem', width: 'calc(100% - 1.5rem)', marginBottom: '1rem', fontSize: '1rem', border: '1px solid #ccc', borderRadius: '0' }}
+                  disabled={!canFund}
+                />
+                <button
+                  onClick={handleFund}
+                  disabled={!canFund || !amount}
+                  style={{
+                    width: '100%', padding: '1rem', fontSize: '1rem',
+                    backgroundColor: (canFund && amount) ? '#1e40af' : '#ccc',
+                    color: '#fff', border: 'none', borderRadius: '0',
+                    cursor: (canFund && amount) ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  {canFund ? '금액 직접 후원' : '후원 불가'}
+                </button>
+              </div>
+            </div>
           </div>
+          {/* --- ✅✅✅ 합쳐진 후원 기능 끝 ✅✅✅ --- */}
 
+          {/* --- 후원 마감 버튼 --- */}
+          {window.ethereum && (
+            <button
+              onClick={handleEndFunding}
+              style={{
+                marginTop: '1.5rem', width: '100%', padding: '1rem', fontSize: '1rem',
+                backgroundColor: '#f44336', color: '#fff', border: 'none',
+                borderRadius: '0', cursor: 'pointer',
+                fontFamily: '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+              }}
+            >
+              후원 마감
+            </button>
+          )}
+
+          {/* --- NFT 투표권 확인 버튼 --- */}
           <div style={{ marginTop: "2rem" }}>
             <button
               onClick={handleCheckMyNFTs}
               style={{
-                padding: "0.75rem 1.5rem",
-                backgroundColor: "#4caf50",
-                color: "#fff",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontWeight: "600",
+                padding: "0.75rem 1.5rem", backgroundColor: "#4caf50", color: "#fff",
+                border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600",
               }}
             >
               내 Voting Power 확인하기
             </button>
-
             {myNFTs.length > 0 && (
               <div style={{ marginTop: "1.5rem" }}>
                 <p style={{ fontSize: "1.1rem", fontWeight: "700", color: "#222" }}>
@@ -479,20 +471,14 @@ const handleCheckMyNFTs = async () => {
               </div>
             )}
           </div>
-
-          {!canFund && (
-            <p style={{ color: 'red', marginTop: '0.5rem' }}>
-              후원이 불가능합니다. {isDeadlineOver ? '마감일이 지났습니다.' : `상태: ${getStatusLabel(project.status)}`}
-            </p>
-          )}
         </div>
       </div>
 
+      {/* --- 하단 프로젝트 상세 설명 --- */}
       <div style={{ marginTop: '3rem', backgroundColor: '#f4f6fb', padding: '2rem', borderRadius: '12px' }}>
         <div style={{ borderLeft: '5px solid #1e40af', paddingLeft: '1rem', marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>프로젝트 소개</h3>
         </div>
-
         {project.detailImages && project.detailImages.length > 0 && (
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             {project.detailImages.map((url, idx) => (
@@ -500,30 +486,28 @@ const handleCheckMyNFTs = async () => {
             ))}
           </div>
         )}
-
-      <div
-        style={{ fontSize: '1rem', lineHeight: '1.6', color: '#333', marginBottom: '2rem' }}
-        dangerouslySetInnerHTML={{ __html: project.description }}
-      />
+        <div
+          style={{ fontSize: '1rem', lineHeight: '1.6', color: '#333', marginBottom: '2rem' }}
+          dangerouslySetInnerHTML={{ __html: project.description }}
+        />
       </div>
+
+      {/* --- 하단 전문가 한줄평 --- */}
       {project.expertReviewRequested && comments.length > 0 && (
-  <div style={{  backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px' }}>
-    <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}> 전문가 한줄평</h3>
-    <ul style={{ paddingLeft: '1rem' }}>
-      {comments.map((item, idx) => (
-        <li key={idx} style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: '#333' }}>
-          <strong style={{ color: '#666' }}>
-            {item.reviewer.slice(0, 6)}...{item.reviewer.slice(-4)}:
-          </strong>{' '}
-          {item.comment}
-        </li>
-      ))}
-    </ul>
-  </div>
-
-  
-)}
-
+        <div style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '12px', marginTop: '2rem' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '1rem' }}> 전문가 한줄평</h3>
+          <ul style={{ paddingLeft: '1rem' }}>
+            {comments.map((item, idx) => (
+              <li key={idx} style={{ marginBottom: '0.75rem', fontSize: '0.95rem', color: '#333' }}>
+                <strong style={{ color: '#666' }}>
+                  {item.reviewer.slice(0, 6)}...{item.reviewer.slice(-4)}:
+                </strong>{' '}
+                {item.comment}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
