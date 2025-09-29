@@ -22,6 +22,8 @@ function ProjectDetail() {
   const [comments, setComments] = useState([]);
   const [rewards, setRewards] = useState([]);
   const [myNFTs, setMyNFTs] = useState([]);
+  const [myRewards, setMyRewards] = useState([]);
+  const [allDonorRewards, setAllDonorRewards] = useState([]);
 
   const navigate = useNavigate();
 
@@ -125,7 +127,7 @@ function ProjectDetail() {
   const isDeadlineOver = new Date() > project.deadline;
   const canFund = isFundableStatus(project.status) && !isDeadlineOver;
 
-// ✅ 리워드 선택 후 후원
+  // ✅ 리워드 선택 후 후원
   const handleFundWithReward = async (rewardIndex, rewardPrice) => {
     if (!window.ethereum) {
       alert('Metamask가 필요합니다.');
@@ -151,31 +153,100 @@ function ProjectDetail() {
   };
 
   // ✅ 금액 직접 입력 후 후원
-const handleFund = async () => {
-  // ... (위에 있는 두 번째 코드의 함수 내용과 동일)
-  if (!window.ethereum || !amount) {
-    alert('Metamask가 필요하거나 후원 금액을 입력해야 합니다.');
+  const handleFund = async () => {
+    // ... (위에 있는 두 번째 코드의 함수 내용과 동일)
+    if (!window.ethereum || !amount) {
+      alert('Metamask가 필요하거나 후원 금액을 입력해야 합니다.');
+      return;
+    }
+
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+
+      const tx = await contract.donateToProject(project.id, {
+        value: ethers.utils.parseEther(amount),
+      });
+
+      await tx.wait();
+      alert(`후원 성공!`);
+      setAmount(''); // 입력창 비우기
+
+      const updated = await contract.getTotalDonated(project.id);
+      setFundedAmount(ethers.utils.formatEther(updated));
+    } catch (err) {
+      console.error(err);
+      alert('후원 실패');
+    }
+  };
+
+  // 내가 선택한 리워드 확인
+const handleCheckMyRewards = async () => {
+  if (!window.ethereum) {
+    setMyRewards(["Metamask가 필요합니다."]);
     return;
   }
-
   try {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+    const user = await signer.getAddress();
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
 
-    const tx = await contract.donateToProject(project.id, {
-      value: ethers.utils.parseEther(amount),
+    const rewardIndexes = await contract.getDonorRewards(project.id, user);
+    if (rewardIndexes.length === 0) {
+      setMyRewards(["선택한 리워드가 없습니다."]);
+      return;
+    }
+
+    const rewardsData = await contract.getProjectRewards(project.id);
+    const myRewardsFormatted = rewardIndexes.map((idx) => {
+      const r = rewardsData[idx];
+      return `${r.name} (${ethers.utils.formatEther(r.price)} ETH)`;
     });
 
-    await tx.wait();
-    alert(`후원 성공!`);
-    setAmount(''); // 입력창 비우기
-
-    const updated = await contract.getTotalDonated(project.id);
-    setFundedAmount(ethers.utils.formatEther(updated));
+    setMyRewards(myRewardsFormatted);
   } catch (err) {
-    console.error(err);
-    alert('후원 실패');
+    console.error("내 리워드 조회 오류:", err);
+    setMyRewards(["내 리워드 조회 실패"]);
+  }
+};
+
+// 전체 후원자 리워드 조회 (창작자만 가능)
+const handleCheckAllDonorRewards = async () => {
+  if (!window.ethereum) {
+    setAllDonorRewards([{ donor: "시스템", rewards: ["Metamask가 필요합니다."] }]);
+    return;
+  }
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+    const user = await signer.getAddress();
+
+    if (user.toLowerCase() !== project.creator.toLowerCase()) {
+      setAllDonorRewards([{ donor: "시스템", rewards: ["⚠️ 프로젝트 생성자만 조회할 수 있습니다."] }]);
+      return;
+    }
+
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
+    const result = await contract.getAllDonorRewards(project.id);
+    const donors = result[0];
+    const rewardsList = result[1];
+    const rewardsData = await contract.getProjectRewards(project.id);
+
+    const donorRewardInfo = donors.map((donor, i) => {
+      const indexes = rewardsList[i];
+      const rewardsForDonor = indexes.map((idx) => {
+        const r = rewardsData[idx];
+        return `${r.name} (${ethers.utils.formatEther(r.price)} ETH)`;
+      });
+      return { donor, rewards: rewardsForDonor };
+    });
+
+    setAllDonorRewards(donorRewardInfo);
+  } catch (err) {
+    console.error("후원자 리워드 전체 조회 오류:", err);
+    setAllDonorRewards([{ donor: "시스템", rewards: ["후원자 리워드 전체 조회 실패"] }]);
   }
 };
 
@@ -280,7 +351,7 @@ const handleCheckMyNFTs = async () => {
     );
 
     // ✅ 원래 값 (정수)
-    const rawPower = await nft.votingPower(project.id, user);
+    const rawPower = await nft.getVotingPower(project.id, user);
 
     // ✅ 10^9로 나눠서 소수점으로 변환
     const formattedPower = (Number(rawPower.toString()) / 1e9).toFixed(9);
@@ -472,6 +543,57 @@ const handleCheckMyNFTs = async () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* --- ✅ 내 리워드 조회 버튼 및 결과 --- */}
+      <div style={{ marginTop: "1.5rem" }}>
+        <button
+          onClick={handleCheckMyRewards}
+          style={{
+            padding: "0.75rem 1.5rem", backgroundColor: "#1e88e5", color: "#fff",
+            border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600",
+          }}
+        >
+          내가 선택한 리워드 보기
+        </button>
+
+        {myRewards.length > 0 && (
+          <div style={{ marginTop: "1rem", backgroundColor: "#f1f5f9", padding: "1rem", borderRadius: "8px" }}>
+            <h4 style={{ marginBottom: "0.5rem" }}>내 리워드 내역</h4>
+            <ul style={{ paddingLeft: "1rem" }}>
+              {myRewards.map((r, i) => (
+                <li key={i}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* --- ✅ 창작자용 전체 후원자 리워드 조회 버튼 및 결과 --- */}
+      <div style={{ marginTop: "1rem" }}>
+        <button
+          onClick={handleCheckAllDonorRewards}
+          style={{
+            padding: "0.75rem 1.5rem", backgroundColor: "#6d28d9", color: "#fff",
+            border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600",
+          }}
+        >
+          전체 후원자 리워드 보기 (창작자용)
+        </button>
+
+        {allDonorRewards.length > 0 && (
+          <div style={{ marginTop: "1rem", backgroundColor: "#fdf2f8", padding: "1rem", borderRadius: "8px" }}>
+            <h4 style={{ marginBottom: "0.5rem" }}>전체 후원자 리워드 내역</h4>
+            <ul style={{ paddingLeft: "1rem" }}>
+              {allDonorRewards.map((d, i) => (
+                <li key={i}>
+                  <strong>{d.donor.slice ? `${d.donor.slice(0, 6)}...${d.donor.slice(-4)}` : d.donor}:</strong>{" "}
+                  {d.rewards.join(", ")}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* --- 하단 프로젝트 상세 설명 --- */}

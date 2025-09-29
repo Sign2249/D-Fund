@@ -9,7 +9,8 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
     uint public nextTokenId;
     address public dFund;
 
-    mapping(uint => mapping(address => uint)) public votingPower;
+    // ✅ donor가 후원한 총액 기록
+    mapping(uint => mapping(address => uint)) public donorTotalAmount;
 
     constructor() ERC721("D-Fund Voting NFT", "DFUND-VOTE") {}
 
@@ -28,14 +29,20 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         address donor,
         uint amountWei
     ) external onlyDFund returns (uint) {
-        uint power = sqrt(amountWei);
-        votingPower[projectId][donor] += power;
+        // ✅ 총액 누적만 기록
+        donorTotalAmount[projectId][donor] += amountWei;
 
+        // NFT 발행은 후원 시 1개씩만 계속 생성
         uint tokenId = nextTokenId++;
         _safeMint(donor, tokenId);
         _setTokenURI(tokenId, "ipfs://example_metadata");
 
         return tokenId;
+    }
+
+    // ✅ 조회 시 총액의 제곱근으로 Voting Power 계산
+    function getVotingPower(uint projectId, address donor) external view returns (uint) {
+        return sqrt(donorTotalAmount[projectId][donor]);
     }
 
     function sqrt(uint x) internal pure returns (uint y) {

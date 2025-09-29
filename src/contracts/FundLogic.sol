@@ -99,6 +99,34 @@ abstract contract FundLogic is FundStorage {
             projectDonors[_projectId].push(msg.sender);
             hasDonated[_projectId][msg.sender] = true;
         }
+
+        // ✅ 리워드 기록 추가
+        donorRewards[_projectId][msg.sender].push(_rewardIndex);
+    }
+
+
+    // ✅ 조회 함수들
+    function getDonorRewards(uint _projectId, address _donor) 
+        external 
+        view 
+        returns (uint[] memory) 
+    {
+        return donorRewards[_projectId][_donor];
+    }
+
+    function getAllDonorRewards(uint _projectId) 
+        external 
+        view 
+        returns (address[] memory donors, uint[][] memory rewards) 
+    {
+        address[] memory d = projectDonors[_projectId];
+        uint[][] memory r = new uint[][](d.length);
+
+        for (uint i = 0; i < d.length; i++) {
+            r[i] = donorRewards[_projectId][d[i]];
+        }
+
+        return (d, r);
     }
 
 }

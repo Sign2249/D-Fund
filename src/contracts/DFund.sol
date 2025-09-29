@@ -14,10 +14,10 @@ contract DFund is FundStorage, ProjectManager, FundLogic {
         votingNFT = VotingPowerNFT(_nft);
     }
 
-    function donateWithReward(uint _projectId, uint _rewardIndex)
-        public
-        payable
-        override
+    function donateWithReward(uint _projectId, uint _rewardIndex) 
+    public 
+    payable 
+    override 
     {
         Reward memory r = projectRewards[_projectId][_rewardIndex];
         require(msg.value == r.price, "ETH must match reward price");
@@ -30,9 +30,13 @@ contract DFund is FundStorage, ProjectManager, FundLogic {
             hasDonated[_projectId][msg.sender] = true;
         }
 
-        // ✅ NFT 발행 (DFund -> VotingPowerNFT)
+        // ✅ 후원자가 어떤 리워드를 선택했는지 기록
+        donorRewards[_projectId][msg.sender].push(_rewardIndex);
+
+        // ✅ NFT 발행 (그대로 유지)
         if (address(votingNFT) != address(0)) {
             votingNFT.mintVotingNFT(_projectId, msg.sender, msg.value);
         }
     }
+
 }
