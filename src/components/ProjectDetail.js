@@ -10,6 +10,7 @@ import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 import VotingPowerNFTABI from "../truffle_abis/VotingPowerNFT.json";
 import { CONTRACT_ADDRESS as VOTING_NFT_ADDRESS } from "../web3/VotingPowerNFTContract";
+import Swal from 'sweetalert2';
 
 
 function ProjectDetail() {
@@ -153,33 +154,84 @@ function ProjectDetail() {
   };
 
   // ✅ 금액 직접 입력 후 후원
-  const handleFund = async () => {
-    // ... (위에 있는 두 번째 코드의 함수 내용과 동일)
-    if (!window.ethereum || !amount) {
-      alert('Metamask가 필요하거나 후원 금액을 입력해야 합니다.');
-      return;
+const handleFund = async () => {
+  // ... (위에 있는 두 번째 코드의 함수 내용과 동일)
+  if (!window.ethereum || !amount) {
+    alert('Metamask가 필요하거나 후원 금액을 입력해야 합니다.');
+    return;
+  }
+  
+  if (parseFloat(amount) <= 0) {
+    Swal.fire({
+      title: '후원 실패',
+      text: '후원 금액은 0보다 커야 합니다.',
+      icon: 'warning',
+
+      confirmButtonText: '확인'
+    });
+    return; // 함수를 즉시 종료
+  }
+
+  Swal.fire({
+    title: '후원하시겠습니까?',
+    text: `이 프로젝트에 ${amount}ETH를 후원하시겠습니까?`,
+    icon: 'question',
+
+    showCancelButton: true,
+    confirmButtonColor: '#0000ff',
+    cancelButtonColor: '#ff0000',
+    confirmButtonText: '예',
+    cancelButtonText: '아니오',
+    reverseButtons: true,
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+
+          const tx = await contract.donateToProject(project.id, {
+            value: ethers.utils.parseEther(amount),
+          });
+
+          await tx.wait();
+
+          Swal.fire({
+            title: '후원 성공!',
+            text: `프로젝트에 ${amount}ETH 후원하였습니다.`,
+            icon: 'success',
+
+            confirmButtonText: '확인'
+          });
+          setAmount(''); // 입력창 비우기
+
+          const updated = await contract.getTotalDonated(project.id);
+          setFundedAmount(ethers.utils.formatEther(updated));
+        } catch (err) {
+          console.error(err);
+          Swal.fire({
+            title: '후원 실패',
+            text: '알 수 없는 이유로 후원에 실패했습니다.',
+            icon: 'error',
+
+            confirmButtonText: '확인'
+          });
+        }
     }
 
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
-
-      const tx = await contract.donateToProject(project.id, {
-        value: ethers.utils.parseEther(amount),
+    else if (result.isDismissed) {
+      Swal.fire({
+            title: '후원 취소',
+            text: '후원이 취소되었습니다.',
+            icon: 'info',
+            
+            confirmButtonText: '확인'
       });
-
-      await tx.wait();
-      alert(`후원 성공!`);
-      setAmount(''); // 입력창 비우기
-
-      const updated = await contract.getTotalDonated(project.id);
-      setFundedAmount(ethers.utils.formatEther(updated));
-    } catch (err) {
-      console.error(err);
-      alert('후원 실패');
     }
-  };
+  })
+
+
+};
 
   // 내가 선택한 리워드 확인
 const handleCheckMyRewards = async () => {
