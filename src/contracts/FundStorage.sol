@@ -31,6 +31,7 @@ abstract contract FundStorage {
     }
 
     mapping(uint => Reward[]) public projectRewards;
+    mapping(uint => mapping(address => uint[])) public donorRewards; // 프로젝트별 후원자 -> 선택한 리워드 인덱스 배열
 
     uint public projectCount;
     mapping(uint => Project) public projects;                       // 프로젝트의 전체 정보
@@ -38,4 +39,5 @@ abstract contract FundStorage {
     mapping(uint => mapping(address => uint)) public donorBalances; // 특정 프로젝트에 특정 주소가 얼마를 후원했는지
     mapping(uint => address[]) public projectDonors;                // 후원한 사람들의 주소 목록
     mapping(uint => mapping(address => bool)) public hasDonated;    // 해당 주소가 해당 프로젝트에 최소 한 번 이상 후원한 이력이 있는지
+    
 }
