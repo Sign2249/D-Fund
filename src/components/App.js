@@ -6,7 +6,6 @@ import RegisterProject from './RegisterProject';
 import AllProjects from './AllProjects';
 import ProjectDetail from './ProjectDetail';
 import ExpertReviewPage from './ExpertReviewPage';
-import 'sweetalert2/dist/sweetalert2.min.css';
 
 function App() {
   const navLinkStyle = {
