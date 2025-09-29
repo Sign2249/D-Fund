@@ -21,25 +21,24 @@ abstract contract FundLogic is FundStorage {
     }
 
     // 후원금 출금
-    function releaseFundsToCreator(uint _projectId, uint _percent) external {
+    function releaseFundsToCreator(uint _projectId, uint _percent) public virtual {
         require(_percent <= 1, "Invalid percentage");
-
         Project storage project = projects[_projectId];
         require(project.creator == msg.sender, "Only creator can withdraw");
 
         FundBalance storage fund = projectFunds[_projectId];
-        uint available = fund.totalDonated - fund.transferredToCreator;     // 후원받은 금액에서 이미 인출한 금액을 뺀 값이 인출 가능 금액
+        uint available = fund.totalDonated - fund.transferredToCreator;
         require(available > 0, "No available funds");
 
-        uint payout = available * _percent;                                 // 인출 가능 금액에서 percent만큼 인출
+        uint payout = available * _percent;
         require(payout > 0, "Payout too small");
 
-        address[] memory backers = projectDonors[_projectId];               // 후원자들의 후원 잔액 차감
-        for (uint i = 0; i < backers.length; i++) {                         // 정산 로직
+        address[] memory backers = projectDonors[_projectId];
+        for (uint i = 0; i < backers.length; i++) {
             address donor = backers[i];
             uint donorShare = donorBalances[_projectId][donor];
             if (donorShare > 0) {
-                uint reduction = donorShare * _percent;                     // 각 후원자가 기여한 금액(donorShare)에서 _percent만큼 감소
+                uint reduction = donorShare * _percent;
                 donorBalances[_projectId][donor] -= reduction;
             }
         }
@@ -49,7 +48,7 @@ abstract contract FundLogic is FundStorage {
         }
 
         fund.transferredToCreator += payout;
-        payable(project.creator).transfer(payout);                          // 창작자에게 후원금 전송
+        payable(project.creator).transfer(payout);
     }
 
     // 프로젝트 무산 시 환불 기능

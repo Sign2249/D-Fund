@@ -350,14 +350,20 @@ const handleCheckMyNFTs = async () => {
       provider
     );
 
-    // ✅ 원래 값 (정수)
-    const rawPower = await nft.getVotingPower(project.id, user);
+    // ✅ 해당 유저의 NFT tokenId 확인
+    const tokenId = await nft.donorTokenId(project.id, user);
 
-    // ✅ 10^9로 나눠서 소수점으로 변환
-    const formattedPower = (Number(rawPower.toString()) / 1e9).toFixed(9);
+    if (tokenId.toString() === "0") {
+      setMyNFTs([{ tokenId: null, power: "0" }]);
+      return;
+    }
+
+    // ✅ Voting Power 조회
+    const rawPower = await nft.getVotingPower(project.id, user);
+    const formattedPower = rawPower.toString(); // 정수 그대로 표시
 
     // 상태에 반영
-    setMyNFTs([{ power: formattedPower }]);
+    setMyNFTs([{ tokenId: tokenId.toString(), power: formattedPower }]);
   } catch (err) {
     console.error("NFT 조회 오류:", err);
     alert("NFT 조회 실패");
@@ -534,8 +540,11 @@ const handleCheckMyNFTs = async () => {
             >
               내 Voting Power 확인하기
             </button>
-            {myNFTs.length > 0 && (
+            {myNFTs.length > 0 && myNFTs[0].tokenId && (
               <div style={{ marginTop: "1.5rem" }}>
+                <p style={{ fontSize: "1.1rem", fontWeight: "700", color: "#222" }}>
+                  NFT Token ID: {myNFTs[0].tokenId}
+                </p>
                 <p style={{ fontSize: "1.1rem", fontWeight: "700", color: "#222" }}>
                   Voting Power: {myNFTs[0].power}
                 </p>

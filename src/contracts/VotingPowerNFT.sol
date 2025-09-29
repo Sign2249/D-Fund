@@ -6,11 +6,17 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
-    uint public nextTokenId;
+    // ✅ 1부터 시작 (지갑/뷰어에서 tokenId=0 표시 이슈 방지)
+    uint public nextTokenId = 1;
     address public dFund;
 
-    // ✅ donor가 후원한 총액 기록
+    // 총 후원액: projectId => donor => amount
     mapping(uint => mapping(address => uint)) public donorTotalAmount;
+    // 1인 1NFT: projectId => donor => tokenId
+    mapping(uint => mapping(address => uint)) public donorTokenId;
+
+    event VotingNFTMinted(uint indexed projectId, address indexed donor, uint tokenId, uint amountWei);
+    event VotingPowerUpdated(uint indexed projectId, address indexed donor, uint totalAmountWei);
 
     constructor() ERC721("D-Fund Voting NFT", "DFUND-VOTE") {}
 
@@ -29,18 +35,28 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         address donor,
         uint amountWei
     ) external onlyDFund returns (uint) {
-        // ✅ 총액 누적만 기록
+        // 총액 누적은 항상 수행
         donorTotalAmount[projectId][donor] += amountWei;
+        emit VotingPowerUpdated(projectId, donor, donorTotalAmount[projectId][donor]);
 
-        // NFT 발행은 후원 시 1개씩만 계속 생성
-        uint tokenId = nextTokenId++;
+        uint tokenId = donorTokenId[projectId][donor];
+
+        // 이미 보유: 재민트 금지, tokenId만 반환
+        if (tokenId != 0) {
+            return tokenId;
+        }
+
+        // 신규 민트: tokenId 1부터 증가
+        tokenId = nextTokenId++;
+        donorTokenId[projectId][donor] = tokenId;
+
         _safeMint(donor, tokenId);
         _setTokenURI(tokenId, "ipfs://example_metadata");
 
+        emit VotingNFTMinted(projectId, donor, tokenId, amountWei);
         return tokenId;
     }
 
-    // ✅ 조회 시 총액의 제곱근으로 Voting Power 계산
     function getVotingPower(uint projectId, address donor) external view returns (uint) {
         return sqrt(donorTotalAmount[projectId][donor]);
     }
@@ -55,6 +71,7 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         }
     }
 
+    // --- Overrides ---
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -83,7 +100,6 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         return super.tokenURI(tokenId);
     }
 
-    // ✅ 여기서 ERC721 제거
     function supportsInterface(bytes4 interfaceId)
         public
         view

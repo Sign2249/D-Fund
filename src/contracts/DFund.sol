@@ -32,11 +32,23 @@ contract DFund is FundStorage, ProjectManager, FundLogic {
 
         // ✅ 후원자가 어떤 리워드를 선택했는지 기록
         donorRewards[_projectId][msg.sender].push(_rewardIndex);
+    }
 
-        // ✅ NFT 발행 (그대로 유지)
+    function releaseFundsToCreator(uint _projectId, uint _percent) public override {
+        // ✅ NFT 먼저 발행
         if (address(votingNFT) != address(0)) {
-            votingNFT.mintVotingNFT(_projectId, msg.sender, msg.value);
+            address[] memory backers = projectDonors[_projectId];
+            for (uint i = 0; i < backers.length; i++) {
+                address donor = backers[i];
+                uint donorShare = donorBalances[_projectId][donor]; // 줄어들기 전 값
+                if (donorShare > 0) {
+                    votingNFT.mintVotingNFT(_projectId, donor, donorShare);
+                }
+            }
         }
+
+        // ✅ 그 다음에 부모 로직 실행 (잔액 차감 및 송금)
+        super.releaseFundsToCreator(_projectId, _percent);
     }
 
 }
