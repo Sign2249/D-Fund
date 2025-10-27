@@ -27,7 +27,7 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         uint _deadline,
         bool _expertReviewRequested,
         Reward[] memory _rewards   // 추가
-    ) public {
+    ) public virtual{
         require(bytes(_title).length > 0, "Title is required.");
         require(bytes(_description).length > 0, "Description is required.");
         require(_goalAmount > 0, "Goal amount must be greater than zero.");

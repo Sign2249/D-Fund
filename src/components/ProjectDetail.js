@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate} from 'react-router-dom';
 import { ethers } from 'ethers';
 
-import DFundABI from '../truffle_abis/DFund.json';
+import DFundCoreABI from '../truffle_abis/DFundCore.json';
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
 import { isFundableStatus, getStatusLabel } from '../utils/statusUtils';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
@@ -11,6 +11,8 @@ import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertRevie
 import VotingPowerNFTABI from "../truffle_abis/VotingPowerNFT.json";
 import { CONTRACT_ADDRESS as VOTING_NFT_ADDRESS } from "../web3/VotingPowerNFTContract";
 import Swal from 'sweetalert2';
+
+import VotingPanel from '../components/VotingPanel';
 
 
 function ProjectDetail() {
@@ -32,7 +34,7 @@ function ProjectDetail() {
     const fetchProject = async () => {
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, provider);
         const reviewContract = new ethers.Contract(REVIEW_CONTRACT_ADDRESS, ExpertReviewABI.abi, provider);
         const detail = await contract.getProject(id);
         const balance = await contract.getTotalDonated(id);
@@ -137,7 +139,7 @@ function ProjectDetail() {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, signer);
 
       const tx = await contract.donateWithReward(project.id, rewardIndex, {
         value: rewardPrice
@@ -188,7 +190,7 @@ const handleFund = async () => {
         try {
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           const signer = provider.getSigner();
-          const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
+          const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, signer);
 
           const tx = await contract.donateToProject(project.id, {
             value: ethers.utils.parseEther(amount),
@@ -243,7 +245,7 @@ const handleCheckMyRewards = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
     const user = await signer.getAddress();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, provider);
 
     const rewardIndexes = await contract.getDonorRewards(project.id, user);
     if (rewardIndexes.length === 0) {
@@ -280,7 +282,7 @@ const handleCheckAllDonorRewards = async () => {
       return;
     }
 
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, provider);
     const result = await contract.getAllDonorRewards(project.id);
     const donors = result[0];
     const rewardsList = result[1];
@@ -302,45 +304,58 @@ const handleCheckAllDonorRewards = async () => {
   }
 };
 
-  // 후원 마감 버튼 기능
+// ✅ 수정된 후원 마감 로직 (단계별 투표 구조용)
   const handleEndFunding = async () => {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const userAddress = await signer.getAddress();
 
+      // ⚠️ 창작자 확인
       if (userAddress.toLowerCase() !== project.creator.toLowerCase()) {
-        alert('⚠️ 프로젝트 생성자만 후원을 마감할 수 있습니다.');
+        Swal.fire({
+          icon: 'warning',
+          title: '권한 오류',
+          text: '⚠️ 프로젝트 생성자만 후원을 마감할 수 있습니다.',
+        });
         return;
       }
 
+      // ⚠️ 마감일 확인
       const now = Math.floor(Date.now() / 1000);
       const deadlineTimestamp = Math.floor(project.deadline.getTime() / 1000);
       if (now <= deadlineTimestamp) {
-        alert('⚠️ 마감일 이후에만 후원을 마감할 수 있습니다.');
+        Swal.fire({
+          icon: 'info',
+          title: '아직 마감일이 되지 않았습니다',
+          text: '마감일 이후에만 후원을 마감할 수 있습니다.',
+        });
         return;
       }
 
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);
-      const totalDonated = await contract.getTotalDonated(project.id);
-      const goalAmount = ethers.utils.parseEther(project.goalAmount);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, signer);
 
-      let tx;
-      if (totalDonated.gte(goalAmount)) {
-        tx = await contract.releaseFundsToCreator(project.id, 1);
-        alert('🎉 목표 달성! 자금이 창작자에게 전달됩니다.');
-      } else {
-        tx = await contract.changeProjectStatusAndRefund(project.id, 3);
-        alert('😢 목표 미달! 후원자에게 환불 처리됩니다.');
-      }
-
+      // ✅ 목표 달성 여부와 관계없이 closeFundraising 호출
+      const tx = await contract.endFundingPhase(project.id);
       await tx.wait();
+
+      Swal.fire({
+        icon: 'success',
+        title: '후원 마감 완료!',
+        text: '목표 달성 여부에 따라 상태가 변경되었습니다.\n\n투표 개시를 통해 단계별로 자금이 분배됩니다.',
+      });
+
       window.location.reload();
     } catch (err) {
-      console.error(err);
-      alert('❌ 후원 마감 중 오류 발생');
+      console.error('❌ 후원 마감 중 오류:', err);
+      Swal.fire({
+        icon: 'error',
+        title: '후원 마감 실패',
+        text: '컨트랙트 실행 중 오류가 발생했습니다.',
+      });
     }
   };
+
   
   const handleExpertReviewClick = async () => {
     if (!project.expertReviewRequested) {
@@ -412,7 +427,7 @@ const handleCheckMyNFTs = async () => {
 
     // ✅ Voting Power 조회
     const rawPower = await nft.getVotingPower(project.id, user);
-    const formattedPower = rawPower.toString(); // 정수 그대로 표시
+    const formattedPower = rawPower.toString()/1000000000; // 정수 그대로 표시
 
     // 상태에 반영
     setMyNFTs([{ tokenId: tokenId.toString(), power: formattedPower }]);
@@ -656,6 +671,11 @@ const handleCheckMyNFTs = async () => {
           </div>
         )}
       </div>
+
+      <VotingPanel
+        projectId={project.id}
+        projectCreator={project.creator}
+      />
 
       {/* --- 하단 프로젝트 상세 설명 --- */}
       <div style={{ marginTop: '3rem', backgroundColor: '#f4f6fb', padding: '2rem', borderRadius: '12px' }}>

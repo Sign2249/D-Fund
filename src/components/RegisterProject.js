@@ -6,7 +6,7 @@ import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-import DFundABI from '../truffle_abis/DFund.json';
+import DFundCoreABI from '../truffle_abis/DFundCore.json';
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
@@ -82,7 +82,7 @@ function RegisterProject() {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);                // 메타마스크와 연결된 이더리움 네트워크 인터페이스 (읽기 전용)
       const signer = provider.getSigner();                                                // 현재 연결된 계정 (지갑 주소)의 서명자 객체
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);       
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, signer);       
       const goalInWei = ethers.utils.parseEther(goalAmount);                              // 사용자 입력값 (ETH)을 Wei 단위로 변환
       const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
       const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);                
