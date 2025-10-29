@@ -354,9 +354,8 @@ const handleCheckAllDonorRewards = async () => {
         icon: 'success',
         title: '후원 마감 완료!',
         text: '목표 달성 여부에 따라 상태가 변경되었습니다.\n\n투표 개시를 통해 단계별로 자금이 분배됩니다.',
-      });
-
-      window.location.reload();
+        }).then(() => {
+            window.location.reload();});
     } catch (err) {
       console.error('❌ 후원 마감 중 오류:', err);
       Swal.fire({
