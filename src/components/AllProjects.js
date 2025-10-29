@@ -3,8 +3,15 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 
-import DFundABI from '../truffle_abis/DFund.json';
-import { CONTRACT_ADDRESS } from '../web3/DFundContract';
+import DFundCore from '../truffle_abis/DFundCore.json';
+
+const networkId = window.ethereum?.networkVersion || '5777';
+const CONTRACT_ADDRESS = DFundCore.networks[networkId]?.address;
+
+if (!CONTRACT_ADDRESS) {
+  console.warn(`⚠️ DFundCore가 네트워크 ${networkId}에 배포되어 있지 않습니다. 
+  truffle migrate --reset 후 build/contracts/DFundCore.json을 다시 복사하세요.`);
+}
 
 function AllProjects() {
   const [projects, setProjects] = useState([]);
@@ -18,34 +25,48 @@ function AllProjects() {
       }
 
       try {
+        // MetaMask provider 연결
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, provider);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCore.abi, provider);
 
-        const count = await contract.projectCount();
-        const loadedProjects = [];
+        console.log("🌐 Network:", await provider.getNetwork());
+console.log("📍 Contract Address:", CONTRACT_ADDRESS);
+console.log("📄 ABI contains getAllProjects:", DFundCore.abi.some(f => f.name === "getAllProjects"));
 
-        for (let i = 1; i <= count; i++) {
-          const p = await contract.projects(i);
-          if (p.id.toNumber() !== 0 && p.title !== '') {
+        // ✅ getAllProjects() 호출 (배열로 한 번에 불러오기)
+        const allProjects = await contract.getAllProjects();
+
+        // JS용으로 변환
+        const loadedProjects = allProjects
+          .filter(p => p.id.toNumber() !== 0 && p.title !== '')
+          .map(p => ({
+            id: p.id.toString(),
+            creator: p.creator,
+            title: p.title,
+            description: p.description,
+            image: p.image,
+            goalAmount: ethers.utils.formatEther(p.goalAmount),
+            deadline: p.deadline.toNumber(),
+            statusCode: p.status,
+          }));
+
+        // 각 프로젝트의 모금액 조회 (병렬 처리)
+        const fundedAmounts = await Promise.all(
+          loadedProjects.map(async p => {
             const balance = await contract.getTotalDonated(p.id);
-            loadedProjects.push({
-              id: p.id.toString(),
-              creator: p.creator,
-              title: p.title,
-              description: p.description,
-              image: p.image,
-              goalAmount: ethers.utils.formatEther(p.goalAmount),
-              deadline: p.deadline.toNumber(),
-              expertReviewRequested: p.expertReviewRequested,
-              fundedAmount: ethers.utils.formatEther(balance),
-            });
-          }
-        }
+            return ethers.utils.formatEther(balance);
+          })
+        );
 
-        setProjects(loadedProjects);
+        const merged = loadedProjects.map((p, i) => ({
+          ...p,
+          fundedAmount: fundedAmounts[i],
+        }));
+
+        setProjects(merged);
         setStatus('');
       } catch (err) {
-        console.error(err);
+        console.error('❌ 프로젝트 불러오기 실패:', err);
         setStatus('프로젝트 목록을 불러오는 데 실패했습니다.');
       }
     };
@@ -64,13 +85,19 @@ function AllProjects() {
       <h2 style={{ marginBottom: '1.5rem' }}>전체 등록된 프로젝트</h2>
       {status && <p>{status}</p>}
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-        gap: '2rem'
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          gap: '2rem',
+        }}
+      >
         {projects.map((project) => {
-          const percent = Math.floor((parseFloat(project.fundedAmount) / parseFloat(project.goalAmount)) * 100);
+          const percent = Math.min(
+            Math.floor((parseFloat(project.fundedAmount) / parseFloat(project.goalAmount)) * 100),
+            100
+          );
+
           return (
             <Link
               key={project.id}
@@ -84,17 +111,20 @@ function AllProjects() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                 transition: 'transform 0.2s',
               }}
-              onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+              onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
             >
               <div style={{ backgroundColor: '#f9f9f9', height: '180px', overflow: 'hidden' }}>
-                {project.image ? ( // 대표 이미지가 있을 경우 렌더링
-                  <img src={project.image} alt="thumbnail" style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
-                ) : null}
+                {project.image && (
+                  <img
+                    src={project.image}
+                    alt="thumbnail"
+                    style={{ width: '100%', height: '180px', objectFit: 'cover' }}
+                  />
+                )}
               </div>
               <div style={{ padding: '1rem' }}>
                 <h3 style={{ fontSize: '1.1rem', margin: '0 0 0.5rem 0' }}>{project.title}</h3>
-
                 <div style={{ marginTop: '1rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
                   <span style={{ color: 'crimson' }}>{percent}%</span>
                   &nbsp; {project.fundedAmount} ETH 모금

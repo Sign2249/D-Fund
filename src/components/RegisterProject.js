@@ -6,7 +6,7 @@ import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-import DFundABI from '../truffle_abis/DFund.json';
+import DFundCoreABI from '../truffle_abis/DFundCore.json';
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as REVIEW_CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
@@ -20,10 +20,14 @@ function RegisterProject() {
   const [description, setDescription] = useState('');
   const [goalAmount, setGoalAmount] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [expertReviewRequested, setExpertReviewRequested] = useState(false);
   const [mainImageUrl, setMainImageUrl] = useState('');
   const [detailImageUrls, setDetailImageUrls] = useState([]);
   const [status, setStatus] = useState('');
+  const [rewards, setRewards] = useState([{ name: '', price: '' }]);
+
 
   const navigate = useNavigate();
 
@@ -78,9 +82,15 @@ function RegisterProject() {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);                // 메타마스크와 연결된 이더리움 네트워크 인터페이스 (읽기 전용)
       const signer = provider.getSigner();                                                // 현재 연결된 계정 (지갑 주소)의 서명자 객체
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundABI.abi, signer);       
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI.abi, signer);       
       const goalInWei = ethers.utils.parseEther(goalAmount);                              // 사용자 입력값 (ETH)을 Wei 단위로 변환
+      const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+      const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);                
       const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);          // 날짜를 Unix timestamp(초 단위)로 변환
+      const rewardData = rewards.map(r => ({
+        name: r.name,
+        price: ethers.utils.parseEther(r.price || "0")
+      }));
 
       const tx = await contract.registerProject(
         title,
@@ -88,8 +98,11 @@ function RegisterProject() {
         mainImageUrl || '',
         detailImageUrls || [],
         goalInWei,
+        startTimestamp,   // 시작일
+        endTimestamp,     // 마감일
         deadlineTimestamp,
-        expertReviewRequested
+        expertReviewRequested,
+        rewardData
       );
 
       setStatus('등록 중...');
@@ -165,10 +178,72 @@ function RegisterProject() {
             <input type="number" value={goalAmount} onChange={(e) => setGoalAmount(e.target.value)} style={inputStyle} required />
           </div>
           <div style={{ width: '350px', paddingLeft: '1rem' }}>
-            <label style={labelStyle}>마감일</label>
+            <label style={labelStyle}>후원 마감일</label>
             <input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} style={inputStyle} required />
           </div>
         </div>
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+          <div style={{ width: '350px', paddingLeft: '1rem' }}>
+            <label style={labelStyle}>프로젝트 시작일</label>
+            <input
+              type="datetime-local"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              style={inputStyle}
+              required
+            />
+          </div>
+          <div style={{ width: '350px', paddingLeft: '1rem' }}>
+            <label style={labelStyle}>프로젝트 마감일</label>
+            <input
+              type="datetime-local"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              style={inputStyle}
+              required
+            />
+          </div>
+        </div>
+
+
+        <div>
+          <label style={labelStyle}>리워드 목록</label>
+          {rewards.map((reward, index) => (
+            <div key={index} style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+              <input
+                type="text"
+                placeholder="리워드 이름"
+                value={reward.name}
+                onChange={(e) => {
+                  const updated = [...rewards];
+                  updated[index].name = e.target.value;
+                  setRewards(updated);
+                }}
+                style={inputStyle}
+              />
+              <input
+                type="number"
+                placeholder="금액 (ETH)"
+                value={reward.price}
+                onChange={(e) => {
+                  const updated = [...rewards];
+                  updated[index].price = e.target.value;
+                  setRewards(updated);
+                }}
+                style={inputStyle}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setRewards([...rewards, { name: '', price: '' }])}
+            style={{ padding: '0.5rem', backgroundColor: '#ddd', border: 'none', borderRadius: '6px' }}
+          >
+            + 리워드 추가
+          </button>
+        </div>
+
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <input type="checkbox" checked={expertReviewRequested} onChange={() => setExpertReviewRequested(!expertReviewRequested)} />

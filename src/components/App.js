@@ -1,11 +1,14 @@
 // App.js
 import React from 'react';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+
 import Main from './Main';
 import RegisterProject from './RegisterProject';
 import AllProjects from './AllProjects';
 import ProjectDetail from './ProjectDetail';
 import ExpertReviewPage from './ExpertReviewPage';
+import CommunitySetup from './CommunitySetup';
 
 function App() {
   const navLinkStyle = {
@@ -34,13 +37,14 @@ function App() {
           </nav>
         </header>
 
-        <main style={{ padding: '2rem', flex: 1 }}>
+        <main className="flex-1 p-0 m-0">
           <Routes>
             <Route path="/" element={<Main />} />
             <Route path="/register" element={<RegisterProject />} />
             <Route path="/projects" element={<AllProjects />} />
             <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/project/:id/expert-review" element={<ExpertReviewPage />} />
+            <Route path="/project/:id/community-setup" element={<CommunitySetup />} />
           </Routes>
         </main>
 

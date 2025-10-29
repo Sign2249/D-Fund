@@ -13,6 +13,8 @@ abstract contract FundStorage {
         string image;
         string[] detailImages;
         uint goalAmount;
+        uint startDate;    // 프로젝트 시작일
+        uint endDate;      // 프로젝트 마감일
         uint deadline;
         bool expertReviewRequested;
         ProjectStatus status;
@@ -23,10 +25,19 @@ abstract contract FundStorage {
         uint transferredToCreator;  // 창작자에게 전송되는 금액
     }
 
+    struct Reward {
+    string name;      // 리워드 이름 (예: 얼리버드, 듀오)
+    uint price;       // 리워드 금액 (ETH 단위, Wei로 저장)
+    }
+
+    mapping(uint => Reward[]) public projectRewards;
+    mapping(uint => mapping(address => uint[])) public donorRewards; // 프로젝트별 후원자 -> 선택한 리워드 인덱스 배열
+
     uint public projectCount;
     mapping(uint => Project) public projects;                       // 프로젝트의 전체 정보
     mapping(uint => FundBalance) public projectFunds;               // 후원 금액 관련 정보
     mapping(uint => mapping(address => uint)) public donorBalances; // 특정 프로젝트에 특정 주소가 얼마를 후원했는지
     mapping(uint => address[]) public projectDonors;                // 후원한 사람들의 주소 목록
     mapping(uint => mapping(address => bool)) public hasDonated;    // 해당 주소가 해당 프로젝트에 최소 한 번 이상 후원한 이력이 있는지
+    
 }

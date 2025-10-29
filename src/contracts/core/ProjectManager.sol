@@ -10,7 +10,7 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         uint indexed id,
         address indexed creator,
         string title,
-        uint goalAmount,
+        uint goalAmount,      
         uint deadline,
         bool expertReviewRequested
     );
@@ -22,9 +22,12 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         string memory _image,
         string[] memory _detailImages,
         uint _goalAmount,
+        uint _startDate,      // 추가
+        uint _endDate,        // 추가
         uint _deadline,
-        bool _expertReviewRequested
-    ) public {
+        bool _expertReviewRequested,
+        Reward[] memory _rewards   // 추가
+    ) public virtual{
         require(bytes(_title).length > 0, "Title is required.");
         require(bytes(_description).length > 0, "Description is required.");
         require(_goalAmount > 0, "Goal amount must be greater than zero.");
@@ -40,9 +43,17 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
         newProject.image = _image;
         newProject.detailImages = _detailImages;
         newProject.goalAmount = _goalAmount;
+        newProject.startDate = _startDate;   // 저장
+        newProject.endDate = _endDate;       // 저장
         newProject.deadline = _deadline;
         newProject.expertReviewRequested = _expertReviewRequested;
         newProject.status = ProjectStatus.FUNDRAISING;   
+
+        for (uint i = 0; i < _rewards.length; i++) {
+                projectRewards[projectCount].push(
+                    Reward({ name: _rewards[i].name, price: _rewards[i].price })
+                );
+            }
 
         emit ProjectRegistered(projectCount, msg.sender, _title, _goalAmount, _deadline, _expertReviewRequested);
     }
@@ -50,6 +61,11 @@ abstract contract ProjectManager is FundStorage {       // FundStorage에서 정
     //프로젝트 조회
     function getProject(uint _id) public view returns (Project memory) { // 반환값도 구조체 형식이기 때문에 memory 사용
         return projects[_id];
+    }
+
+    // ✅ 리워드 조회 추가
+    function getProjectRewards(uint _id) public view returns (Reward[] memory) {
+        return projectRewards[_id];
     }
 
     function getAllProjects() public view returns (Project[] memory) {
