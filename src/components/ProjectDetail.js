@@ -27,6 +27,7 @@ function ProjectDetail() {
   const [myNFTs, setMyNFTs] = useState([]);
   const [myRewards, setMyRewards] = useState([]);
   const [allDonorRewards, setAllDonorRewards] = useState([]);
+  const [userAddress, setUserAddress] = useState(null); // userAddress 상태 추가
 
   const navigate = useNavigate();
 
@@ -38,6 +39,15 @@ function ProjectDetail() {
         const reviewContract = new ethers.Contract(REVIEW_CONTRACT_ADDRESS, ExpertReviewABI.abi, provider);
         const detail = await contract.getProject(id);
         const balance = await contract.getTotalDonated(id);
+
+        // 👈 2. useEffect 초기에 유저 주소 가져오기
+        try {
+          const signer = provider.getSigner();
+          const address = await signer.getAddress();
+          setUserAddress(address.toLowerCase()); // 소문자로 통일
+        } catch (err) {
+          console.warn("지갑 주소를 가져올 수 없습니다.", err);
+        }
 
         if (!detail || detail.title === '') {
           setStatus('프로젝트를 찾을 수 없습니다.');
@@ -204,7 +214,8 @@ const handleFund = async () => {
             icon: 'success',
 
             confirmButtonText: '확인'
-          });
+                    }).then(() => {
+            navigate(`/project/${project.id}/community-setup`);});
           setAmount(''); // 입력창 비우기
 
           const updated = await contract.getTotalDonated(project.id);
@@ -593,6 +604,22 @@ const handleCheckMyNFTs = async () => {
               }}
             >
               후원 마감
+            </button>
+          )}
+
+           {/* --- 🚀🚀🚀 커뮤니티 생성 버튼 🚀🚀🚀 --- */}
+          {/* 조건: 프로젝트 상태가 '모금 성공'(1)이고, 현재 사용자가 '창작자'일 때만 보임 */}
+          {project.status === 1 && userAddress.toLowerCase() === project.creator.toLowerCase() && (
+            <button
+              onClick={() => navigate(`/project/${project.id}/community-setup`)}
+              style={{
+                marginTop: '1.5rem', width: '100%', padding: '1rem', fontSize: '1rem',
+                backgroundColor: '#007bff', // 커뮤니티 생성 관련 색상 (예: 파란색)
+                color: '#fff', border: 'none',
+                borderRadius: '0', cursor: 'pointer', fontWeight: '700'
+              }}
+            >
+              🚀 커뮤니티 생성/관리 페이지로 이동
             </button>
           )}
 
