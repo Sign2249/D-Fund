@@ -1,11 +1,10 @@
 import ExpertReviewArtifact from '../truffle_abis/ExpertReview.json';
 
-// truffle migrate --reset할 때마다 변경되는 계약 주소를 자동으로 추출
-const NETWORK_ID = '5777'; // Ganache or your current network ID
-const CONTRACT_ADDRESS = ExpertReviewArtifact.networks[NETWORK_ID]?.address;
+// 🟢 세폴리아 네트워크 ID
+const NETWORK_ID = '11155111';
 
-if (!CONTRACT_ADDRESS) {
-  console.warn('🚨 ExpertReview Contract not deployed to network ID', NETWORK_ID);
-}
+// 🟢 실제 배포된 주소 직접 지정
+export const CONTRACT_ADDRESS = "0x87907735fFb08f94Da7E7B85E556618d3a56421D";
 
-export { CONTRACT_ADDRESS };
+// 🟢 ABI는 그대로 사용
+export const ExpertReviewABI = ExpertReviewArtifact.abi;

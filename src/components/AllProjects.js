@@ -1,17 +1,7 @@
-// AllProjects.js
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
-
-import DFundCore from '../truffle_abis/DFundCore.json';
-
-const networkId = window.ethereum?.networkVersion || '5777';
-const CONTRACT_ADDRESS = DFundCore.networks[networkId]?.address;
-
-if (!CONTRACT_ADDRESS) {
-  console.warn(`⚠️ DFundCore가 네트워크 ${networkId}에 배포되어 있지 않습니다. 
-  truffle migrate --reset 후 build/contracts/DFundCore.json을 다시 복사하세요.`);
-}
+import { DFundCoreABI, CONTRACT_ADDRESS } from '../web3/DFundContract'; // ✅ 이 부분으로 교체
 
 function AllProjects() {
   const [projects, setProjects] = useState([]);
@@ -27,11 +17,11 @@ function AllProjects() {
       try {
         // MetaMask provider 연결
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCore.abi, provider);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, DFundCoreABI, provider);
 
         console.log("🌐 Network:", await provider.getNetwork());
-console.log("📍 Contract Address:", CONTRACT_ADDRESS);
-console.log("📄 ABI contains getAllProjects:", DFundCore.abi.some(f => f.name === "getAllProjects"));
+        console.log("📍 Contract Address:", CONTRACT_ADDRESS);
+
 
         // ✅ getAllProjects() 호출 (배열로 한 번에 불러오기)
         const allProjects = await contract.getAllProjects();
