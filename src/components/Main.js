@@ -11,6 +11,34 @@ export default function Main() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const connectWalletForApproval = async () => {
+      if (!window.ethereum) {
+        console.error("MetaMask가 감지되지 않았습니다.");
+        alert("MetaMask가 설치되어 있지 않습니다.");
+        return;
+      }
+      
+      try {
+        // 'eth_requestAccounts'가 "연결" 팝업을 띄웁니다.
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        
+        // ✅ [수정됨] 성공 알림창(alert)을 제거했습니다.
+        console.log("Wallet approved for localhost:3000");
+
+      } catch (err) {
+        if (err.code === 4001) {
+          alert("MetaMask 연결이 거부되었습니다. 다시 시도해주세요.");
+          console.warn("User rejected connection.");
+        } else {
+          alert(`지갑 연결 중 오류 발생: ${err.message}`);
+          console.error("Wallet connection error:", err);
+        }
+      }
+    };
+    
+    // 페이지 로드 시 바로 연결 함수 실행
+    connectWalletForApproval();
+
     const mockProjects = [
       {
         id: "1",

@@ -39,6 +39,7 @@ function ProjectDetail() {
         const reviewContract = new ethers.Contract(REVIEW_CONTRACT_ADDRESS, ExpertReviewABI.abi, provider);
         const detail = await contract.getProject(id);
         const balance = await contract.getTotalDonated(id);
+        console.log("📍 VotingNFT Contract Address:", VOTING_NFT_ADDRESS);
 
         // 👈 2. useEffect 초기에 유저 주소 가져오기
         try {

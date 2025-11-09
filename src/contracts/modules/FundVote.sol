@@ -44,7 +44,7 @@ contract FundVote {
         VoteRound storage vr = projectVotes[projectId][round];
         vr.active = true;
         vr.startTime = block.timestamp;
-        vr.endTime = block.timestamp + 30;
+        vr.endTime = block.timestamp + 60;
         vr.executed = false;
     }
 
