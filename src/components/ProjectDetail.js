@@ -21,7 +21,7 @@ function ProjectDetail() {
   const [status, setStatus] = useState('로딩 중...');
   const [amount, setAmount] = useState('');
   const [fundedAmount, setFundedAmount] = useState('0');
-  const [reviewStats, setReviewStats] = useState({ positive: 0, negative: 0 });
+  const [reviewStats, setReviewStats] = useState({sp: 0,  wp: 0,  wn: 0, sn: 0});
   const [comments, setComments] = useState([]);
   const [rewards, setRewards] = useState([]);
   const [myNFTs, setMyNFTs] = useState([]);
@@ -88,9 +88,20 @@ function ProjectDetail() {
         // 전문가 평가 설정
         try {
           const result = await reviewContract.getReviewResult(Number(id));
-          const positive = result.positive;
-          const negative = result.negative;
-          setReviewStats({ positive: Number(positive), negative: Number(negative) });
+
+          const sp = Number(result[0]);
+          const wp = Number(result[1]);
+          const wn = Number(result[2]);
+          const sn = Number(result[3]);
+
+          const total = sp + wp + wn + sn || 1;
+          setReviewStats({
+            sp: Math.round((sp / total) * 100),
+            wp: Math.round((wp / total) * 100),
+            wn: Math.round((wn / total) * 100),
+            sn: Math.round((sn / total) * 100),
+          });
+            
           try {
             // reviewContract에서 reviewers 가져오기
             const reviewerAddresses = await reviewContract.getReviewers(Number(id));
@@ -400,16 +411,6 @@ const handleCheckAllDonorRewards = async () => {
       alert('❌ 전문가 평가 확인 중 오류가 발생했습니다.');
     }
   };
-
-  // 전문가 평가 긍정 부정 비율
-  const getReviewRatio = () => {
-    const total = reviewStats.positive + reviewStats.negative;
-    if (total === 0) return { positive: 0, negative: 0 };
-    return {
-      positive: Math.round((reviewStats.positive / total) * 100),
-      negative: Math.round((reviewStats.negative / total) * 100),
-    };
-  };
   
 const handleCheckMyNFTs = async () => {
   if (!window.ethereum) {
@@ -478,17 +479,16 @@ const handleCheckMyNFTs = async () => {
           <p><strong>등록자:</strong> {project.creator}</p>
           <p><strong>전문가 심사 요청:</strong> {project.expertReviewRequested ? '예' : '아니오'}</p>
           {project.expertReviewRequested && (
-            <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>전문가 평가 결과</h3>
-              <div style={{ marginBottom: '0.5rem', fontSize: '0.95rem', color: '#444' }}>
-                긍정: {getReviewRatio().positive}% / 부정: {getReviewRatio().negative}%
-              </div>
-              <div style={{ height: '14px', background: '#eee', borderRadius: '8px', overflow: 'hidden', display: 'flex' }}>
-                <div style={{ width: `${getReviewRatio().positive}%`, backgroundColor: '#10b981' }} />
-                <div style={{ width: `${getReviewRatio().negative}%`, backgroundColor: '#ef4444' }} />
-              </div>
+            <div style={{ height: '14px', background: '#eee', borderRadius: '8px', overflow: 'hidden', marginTop: '0.5rem', display: 'flex' }}>
+              <div style={{ width: `${reviewStats.sp}%`, backgroundColor: '#15803d' }} />
+              <div style={{ width: `${reviewStats.wp}%`, backgroundColor: '#22c55e' }} />
+              <div style={{ width: `${reviewStats.wn}%`, backgroundColor: '#f97316' }} />
+              <div style={{ width: `${reviewStats.sn}%`, backgroundColor: '#b91c1c' }} />
             </div>
           )}
+                        <p style={{ fontSize: '0.85rem', color: '#333', marginTop: '0.25rem' }}>
+                💪 {reviewStats.sp}% / 🙂 {reviewStats.wp}% / 🙁 {reviewStats.wn}% / 💀 {reviewStats.sn}%
+              </p>
         </div>
 
         {/* === 오른쪽 컬럼: 펀딩 상태 및 후원하기 === */}

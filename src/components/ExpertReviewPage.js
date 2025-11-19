@@ -8,16 +8,17 @@ import { CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 function ExpertReviewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isPositive, setIsPositive] = useState(null);
+
+  // ✅ 평가 강도 선택 (0~3)
+  const [strength, setStrength] = useState(null);
   const [comment, setComment] = useState('');
   const [status, setStatus] = useState('');
 
   const handleSubmit = async () => {
-    if (isPositive === null) {
-      alert('긍정 또는 부정을 선택해주세요.');
+    if (strength === null) {
+      alert('평가 강도를 선택해주세요.');
       return;
     }
-
     if (!comment.trim()) {
       alert('한줄평을 입력해주세요.');
       return;
@@ -28,52 +29,87 @@ function ExpertReviewPage() {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ExpertReviewABI.abi, signer);
 
-      const tx = await contract.submitReview(id, isPositive, comment);
+      // ✅ strength(0~3) enum 전달
+      const tx = await contract.submitReview(id, strength, comment);
       await tx.wait();
 
-      console.log('한줄평:', comment);
-
-      alert('평가가 완료되었습니다.');
+      alert('평가가 성공적으로 등록되었습니다!');
       setTimeout(() => navigate(`/project/${id}`), 1500);
     } catch (error) {
       console.error(error);
-      alert('평가 제출 중 오류 발생');
+      alert('평가 제출 중 오류가 발생했습니다.');
     }
   };
 
   return (
     <div style={{ maxWidth: '600px', margin: '2rem auto', fontFamily: 'sans-serif' }}>
       <h2>전문가 평가</h2>
-      <p>해당 프로젝트에 대해 긍정 또는 부정 평가를 선택하고, 한줄평을 남겨주세요.</p>
+      <p>프로젝트에 대해 강도별 평가를 선택하고, 한줄평을 남겨주세요.</p>
 
-      <div style={{ marginBottom: '1rem' }}>
+      {/* ✅ 4단계 평가 버튼 */}
+      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <button
-          onClick={() => setIsPositive(true)}
+          onClick={() => setStrength(0)}
           style={{
-            padding: '0.5rem 1rem',
-            marginRight: '1rem',
-            backgroundColor: isPositive === true ? '#10b981' : '#e5e7eb',
-            color: isPositive === true ? '#fff' : '#333',
+            flex: '1',
+            padding: '0.75rem',
+            backgroundColor: strength === 0 ? '#15803d' : '#e5e7eb',
+            color: strength === 0 ? '#fff' : '#333',
             border: 'none',
             borderRadius: '6px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontWeight: '600'
           }}
         >
-          👍 긍정
+          💪 강한 긍정
         </button>
 
         <button
-          onClick={() => setIsPositive(false)}
+          onClick={() => setStrength(1)}
           style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: isPositive === false ? '#ef4444' : '#e5e7eb',
-            color: isPositive === false ? '#fff' : '#333',
+            flex: '1',
+            padding: '0.75rem',
+            backgroundColor: strength === 1 ? '#22c55e' : '#e5e7eb',
+            color: strength === 1 ? '#fff' : '#333',
             border: 'none',
             borderRadius: '6px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontWeight: '600'
           }}
         >
-          👎 부정
+          🙂 약한 긍정
+        </button>
+
+        <button
+          onClick={() => setStrength(2)}
+          style={{
+            flex: '1',
+            padding: '0.75rem',
+            backgroundColor: strength === 2 ? '#f97316' : '#e5e7eb',
+            color: strength === 2 ? '#fff' : '#333',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
+        >
+          🙁 약한 부정
+        </button>
+
+        <button
+          onClick={() => setStrength(3)}
+          style={{
+            flex: '1',
+            padding: '0.75rem',
+            backgroundColor: strength === 3 ? '#b91c1c' : '#e5e7eb',
+            color: strength === 3 ? '#fff' : '#333',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '600'
+          }}
+        >
+          💀 강한 부정
         </button>
       </div>
 
@@ -82,7 +118,14 @@ function ExpertReviewPage() {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         rows={4}
-        style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ccc' }}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          borderRadius: '6px',
+          border: '1px solid #ccc',
+          fontSize: '1rem',
+          resize: 'none'
+        }}
       />
 
       <button
@@ -96,6 +139,7 @@ function ExpertReviewPage() {
           borderRadius: '6px',
           width: '100%',
           fontSize: '1rem',
+          fontWeight: '600',
           cursor: 'pointer'
         }}
       >
