@@ -44,7 +44,7 @@ contract FundVote {
         VoteRound storage vr = projectVotes[projectId][round];
         vr.active = true;
         vr.startTime = block.timestamp;
-        vr.endTime = block.timestamp + 60;
+        vr.endTime = block.timestamp + 30;
         vr.executed = false;
     }
 
@@ -113,21 +113,25 @@ contract FundVote {
         projectVotes[projectId][round].active = false;
 
         uint percent = (yes * 100) / total;
-        DFundCore.Project memory p = dfundCore.getProject(projectId);
-        uint releaseAmount = dfundCore.getTotalDonated(projectId) / 2;
 
-        if (percent >= 50) {
-            uint available = dfundCore.getRemainingFunds(projectId);
-            uint releaseAmount = available / 2;
-            dfundCore.releaseFundsToCreator(projectId, releaseAmount);
-
-            if (currentRound[projectId] >= 2) {
-                dfundCore.forceComplete(projectId);
-            }
-        } else {
-            // ✅ 실패 시에는 잔여금 전액 환불만
+        if (percent < 50) {
+            // 실패 → 전체 환불
             dfundCore.forceFail(projectId);
+            return;
         }
 
+        // -------- SUCCESS CASE --------
+
+        if (round == 1) {
+            // ROUND 1: 모금액의 절반 지급
+            uint totalDonated = dfundCore.getTotalDonated(projectId);
+            uint firstRelease = totalDonated / 2;
+            dfundCore.releaseFundsToCreator(projectId, firstRelease);
+        }
+
+        else if (round == 2) {
+            // ROUND 2: 남은 금액 기준 최종 완료 처리
+            dfundCore.completeProject(projectId);
+        }
     }
 }

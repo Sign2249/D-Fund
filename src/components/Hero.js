@@ -1,65 +1,131 @@
-// src/components/Hero.js
-import { Button } from "./ui/button";
-import { ArrowRight, Zap } from "lucide-react";
+import React from "react";
+import heroImg from "../assets/hero-blockchain.jpg"; // 이미지 경로 확인 필요
+import { Shield, Users } from "lucide-react";
 
-export default function Hero({ onGetStarted }) {
+export default function Hero() {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-background to-accent/10 py-20">
-      <div className="absolute inset-0 bg-grid-white/5 bg-grid-pattern opacity-20" />
-      <div className="absolute top-20 left-20 w-16 h-16 border border-primary/30 rotate-45 animate-pulse" />
-      <div className="absolute top-40 right-32 w-12 h-12 border border-accent/40 rotate-12 animate-bounce" />
-      <div className="absolute bottom-32 left-40 w-8 h-8 bg-primary/20 rotate-45" />
+    <section className="w-full bg-gradient-to-b from-[#f5f8ff] via-[#eef5ff] to-[#eef5ff] py-16 mt-0">
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        
+        {/* -------- LEFT TEXT -------- */}
+        <div>
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-md shadow-sm border border-white/40 mb-6">
+            <span className="text-sm font-medium text-[#4c4c6d]">
+              탈중앙화 · 투명성 · 혁신
+            </span>
+          </div>
 
-      <div className="relative max-w-6xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-8">
-          <Zap className="w-4 h-4 text-primary" />
-          <span className="text-sm font-mono text-primary">
-            Decentralized • Trustless • Innovation
-          </span>
+          {/* Title */}
+          <h1 className="text-5xl md:text-6xl font-bold leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#3a6ff0] to-[#27d3a9]">
+            DFund
+            <br /> <br />
+            혁신을 지원하고,
+            <br />
+            미래를 펀딩하세요
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-lg text-[#6d6d80] mt-6 leading-relaxed">
+            D-Fund는 이더리움 기반의 탈중앙화 크라우드펀딩 플랫폼입니다.
+            <br />
+            블록체인 기술로 투명하고 안전한 펀딩 경험을 제공합니다.
+          </p>
+
+          {/* Buttons */}
+          <div className="flex gap-4 mt-8">
+            {/* Primary */}
+            <a
+              href="/register"
+              className="px-8 py-3 bg-[#3a6ff0] text-white rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+            >
+              프로젝트 시작하기 →
+            </a>
+
+            {/* Secondary */}
+            <a
+              href="/service-intro"
+              className="px-8 py-3 bg-white text-[#3a6ff0] rounded-full border border-[#d5dff7] shadow-sm hover:bg-[#f4f7ff] transition-all"
+            >
+              자세히 알아보기
+            </a>
+          </div>
+
+          {/* Bottom Stats */}
+          <div className="flex gap-10 mt-14">
+            <div>
+              <div className="text-3xl font-bold text-[#3a6ff0]">24/7</div>
+              <div className="text-sm text-[#6d6d80] mt-1">글로벌 접근성</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-[#27d3a9]">0%</div>
+              <div className="text-sm text-[#6d6d80] mt-1">중개 수수료</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-[#3a6ff0]">100%</div>
+              <div className="text-sm text-[#6d6d80] mt-1">투명한 거래</div>
+            </div>
+          </div>
         </div>
 
-        <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent mb-6">
-          Empower Ideas,<br />Fund the Future
-        </h1>
+        <div className="relative">
+  <img
+    src={heroImg}
+    alt="블록체인"
+    className="w-full rounded-3xl shadow-2xl"
+  />
 
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
-          D-Fund는 이더리움 기반의 탈중앙화 크라우드펀딩 플랫폼입니다.<br />
-          혁신적인 프로젝트를 등록하고, 지원을 받아 세상을 변화시키세요!
-        </p>
+{/* 스마트 컨트랙트 카드 — 훨씬 투명 + 이미지 왼쪽에 걸치게 */}
+<div
+  className="
+    absolute 
+    top-12 -left-8    /* 왼쪽으로 살짝 튀어나오게 */
+    w-36 h-36 
+    rounded-3xl
+    bg-white/1     /* 훨씬 투명 */
+    backdrop-blur-2xl
+    border border-white/15
+    shadow-[0_4px_20px_rgba(0,0,0,0.07)]
+    flex flex-col items-center justify-center
+    animate-float
+  "
+>
+  <Shield className="w-7 h-7 text-[#3a6ff0] mb-3 opacity-90" />
+  <div className="text-[15px] font-semibold text-[#f4f3fb]">
+    스마트 컨트랙트
+  </div>
+  <div className="text-[12px] text-[#f4f3fb] mt-1">
+    안전한 거래 보장
+  </div>
+</div>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button
-            size="lg"
-            onClick={onGetStarted}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-8 py-3 rounded-full group"
-          >
-            시작하기
-            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-3 rounded-full backdrop-blur-sm"
-          >
-            자세히 알아보기
-          </Button>
-        </div>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
-          <div className="text-center">
-            <div className="text-2xl font-mono font-bold text-primary mb-2">24/7</div>
-            <div className="text-sm text-muted-foreground">전 세계 접근 가능</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-mono font-bold text-accent mb-2">0%</div>
-            <div className="text-sm text-muted-foreground">중개 수수료</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-mono font-bold text-chart-4 mb-2">100%</div>
-            <div className="text-sm text-muted-foreground">투명한 거래</div>
-          </div>
-        </div>
+  {/* 글로벌 커뮤니티 카드 — 훨씬 투명 + 이미지 오른쪽에 걸치게 */}
+<div
+  className="
+    absolute 
+    bottom-12 -right-8   /* 오른쪽으로 튀어나오게 */
+    w-36 h-36 
+    rounded-3xl
+    bg-white/1          /* 투명도 낮춤 */
+    backdrop-blur-2xl
+    border border-white/15
+    shadow-[0_4px_20px_rgba(0,0,0,0.07)]
+    flex flex-col items-center justify-center
+    animate-[float_5s_ease-in-out_infinite]
+  "
+>
+  <Users className="w-7 h-7 text-[#27d3a9] mb-3 opacity-90" />
+  <div className="text-[15px] font-semibold text-[#f4f3fb]">
+    글로벌 커뮤니티
+  </div>
+  <div className="text-[12px] text-[#f4f3fb] mt-1">
+    전세계 후원자
+  </div>
+</div>
+
+</div>
       </div>
-    </div>
+    </section>
   );
 }

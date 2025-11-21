@@ -2,6 +2,10 @@
 pragma solidity ^0.8.19;
 
 import "./FundStorage.sol";
+import "../interfaces/IExpertReputation.sol";
+import "../interfaces/IExpertReview.sol";
+import "../interfaces/IExpertReward.sol";
+
 
 abstract contract FundLogic is FundStorage {
 
@@ -172,6 +176,46 @@ abstract contract FundLogic is FundStorage {
         }
 
         return (d, r);
+    }
+
+function setExpertModules(
+    address _review,
+    address _reputation,
+    address _reward
+) public virtual {
+    expertReviewContract = _review;
+    expertReputationContract = _reputation;
+    expertRewardContract = _reward;
+}
+
+    function completeProject(uint projectId) external {
+        require(expertReputationContract != address(0), "Reputation contract not set");
+        require(expertRewardContract != address(0), "Reward contract not set");
+
+        Project storage project = projects[projectId];
+        FundBalance storage fund = projectFunds[projectId];
+
+        require(project.status == ProjectStatus.IN_PROGRESS, "Not in progress");
+
+        // 🔹 남은 잔액 기준으로 계산
+        uint remaining = fund.totalDonated - fund.transferredToCreator;
+        require(remaining > 0, "No remaining funds");
+
+        uint rewardAmount = (remaining * 20) / 100;  
+        uint creatorAmount = remaining - rewardAmount;
+
+        fund.transferredToCreator += creatorAmount;
+        payable(project.creator).transfer(creatorAmount);
+
+        // 🔹 전문가 평판 업데이트
+        IExpertReputation(expertReputationContract)
+            .updateReputation(projectId, true);
+
+        // 🔹 전문가 보상 분배 (10%)
+        IExpertReward(expertRewardContract)
+            .distributeReward{value: rewardAmount}(projectId, rewardAmount);
+
+        project.status = ProjectStatus.COMPLETED;
     }
 
 }

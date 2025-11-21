@@ -4,12 +4,17 @@ pragma solidity ^0.8.19;
 
 contract ExpertReview {
 
+    enum ReviewStrength { STRONG_POSITIVE, WEAK_POSITIVE, WEAK_NEGATIVE, STRONG_NEGATIVE }
+
     // 프로젝트의 모든 Review들
     struct ReviewInfo {
-        uint positive;
-        uint negative;
+        uint strongPositive;
+        uint weakPositive;
+        uint weakNegative;
+        uint strongNegative;
         mapping(address => bool) hasVoted;
         mapping(address => string) comments;
+        mapping(address => ReviewStrength) strengths;
     }
 
     mapping(uint => ReviewInfo) private projectReviews;
@@ -20,12 +25,12 @@ contract ExpertReview {
     event ReviewSubmitted(
         uint indexed projectId,
         address indexed reviewer,
-        bool isPositive,
+        ReviewStrength strength,
         string comment
     );
 
     modifier onlyBeforeDeadline(uint _projectId) {
-        require(block.timestamp < projectDeadline[_projectId] - 60, "Review period has ended");
+        require(block.timestamp < projectDeadline[_projectId] - 10, "Review period has ended");
         _;
     }
 
@@ -43,44 +48,68 @@ contract ExpertReview {
 
     // 평가 제출 (프로젝트에 긍정, 부정 개수 증가, 평가 여부, comment 추가)
     function submitReview(
-        uint _projectId,
-        bool isPositive,
-        string calldata comment
+    uint _projectId,
+    ReviewStrength strength,
+    string calldata comment
     ) external reviewable(_projectId) onlyBeforeDeadline(_projectId) {
         ReviewInfo storage review = projectReviews[_projectId];
         require(!review.hasVoted[msg.sender], "Already reviewed");
 
-        if (isPositive) {
-            review.positive++;
-        } else {
-            review.negative++;
-        }
+        if (strength == ReviewStrength.STRONG_POSITIVE) review.strongPositive++;
+        else if (strength == ReviewStrength.WEAK_POSITIVE) review.weakPositive++;
+        else if (strength == ReviewStrength.WEAK_NEGATIVE) review.weakNegative++;
+        else review.strongNegative++;
 
         review.hasVoted[msg.sender] = true;
         review.comments[msg.sender] = comment;
+        review.strengths[msg.sender] = strength;
         reviewers[_projectId].push(msg.sender);
 
-        emit ReviewSubmitted(_projectId, msg.sender, isPositive, comment);
+        emit ReviewSubmitted(_projectId, msg.sender, strength, comment);
     }
 
     // 평가 결과 반환
-    function getReviewResult(uint _projectId) external view returns (uint positive, uint negative) {
+    function getReviewResult(uint _projectId)
+        external
+        view
+        returns (uint sp, uint wp, uint wn, uint sn)
+    {
         ReviewInfo storage review = projectReviews[_projectId];
-        return (review.positive, review.negative);
+        return (review.strongPositive, review.weakPositive, review.weakNegative, review.strongNegative);
     }
 
     // 전문가 평가 여부 반환
-    function hasReviewerVoted(uint _projectId, address reviewer) external view returns (bool) {
+    function hasReviewerVoted(uint _projectId, address reviewer)
+        external
+        view
+        returns (bool)
+    {
         return projectReviews[_projectId].hasVoted[reviewer];
     }
 
+        function getReviewerStrength(uint _projectId, address reviewer)
+        external
+        view
+        returns (ReviewStrength)
+    {
+        return projectReviews[_projectId].strengths[reviewer];
+    }
+
     // 리뷰어 목록 (한줄평 출력용)
-    function getReviewers(uint _projectId) external view returns (address[] memory) {
+    function getReviewers(uint _projectId)
+        external
+        view
+        returns (address[] memory)
+    {
         return reviewers[_projectId];
     }
 
-    // comment 받아오기
-    function getComment(uint _projectId, address reviewer) external view returns (string memory) {
+    function getComment(uint _projectId, address reviewer)
+        external
+        view
+        returns (string memory)
+    {
         return projectReviews[_projectId].comments[reviewer];
     }
+
 }

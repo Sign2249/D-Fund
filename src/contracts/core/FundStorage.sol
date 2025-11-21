@@ -1,3 +1,4 @@
+
 // SPDX-License-Identifier: MIT
 // 프로젝트 기본 형식
 pragma solidity ^0.8.19;
@@ -29,6 +30,11 @@ abstract contract FundStorage {
     string name;      // 리워드 이름 (예: 얼리버드, 듀오)
     uint price;       // 리워드 금액 (ETH 단위, Wei로 저장)
     }
+
+    // --- 전문가 모듈 주소 저장 ---
+    address public expertReviewContract;
+    address public expertReputationContract;
+    address public expertRewardContract;
 
     mapping(uint => Reward[]) public projectRewards;
     mapping(uint => mapping(address => uint[])) public donorRewards; // 프로젝트별 후원자 -> 선택한 리워드 인덱스 배열
