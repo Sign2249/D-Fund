@@ -588,7 +588,7 @@ function ProjectDetail() {
                 <img
                   src={project.image}
                   alt="대표"
-                  className="w-full h-72 object-cover"
+                  className="w-full h-150 object-cover"
                 />
               ) : (
                 <div className="w-full h-72" />
@@ -696,37 +696,43 @@ function ProjectDetail() {
 
             {/* 리워드 후원 카드 */}
             <div className="bg-white rounded-3xl border border-[#e5e8ef] shadow p-6 space-y-4">
-              <h3 className="text-base font-semibold text-[#111827]">
-                리워드 선택 후원
-              </h3>
-              {canFund ? (
-                rewards.length > 0 ? (
-                  <div className="space-y-3">
-                    {rewards.map((r, idx) => (
+              <h3 className="text-base font-semibold text-[#111827]">리워드 선택 후원</h3>
+
+              {rewards.length > 0 ? (
+                <div className="space-y-3">
+                  {rewards.map((r, idx) => {
+                    const rewardDisabled = !canFund; // 🔒 마감되면 버튼 비활성화
+
+                    return (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => handleFundWithReward(idx, r.price)}
-                        className="w-full text-left rounded-2xl border border-[#e5e7eb] px-4 py-3 flex items-center justify-between hover:shadow-md hover:-translate-y-0.5 transition bg-white"
+                        disabled={rewardDisabled}
+                        onClick={() => !rewardDisabled && handleFundWithReward(idx, r.price)}
+                        className={`
+                          w-full text-left rounded-2xl px-4 py-3 flex items-center justify-between transition
+                          ${rewardDisabled
+                            ? "border border-[#e5e7eb] bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "border border-[#e5e7eb] bg-white hover:shadow-md hover:-translate-y-0.5"
+                          }
+                        `}
                       >
                         <span className="font-medium">{r.name}</span>
-                        <span className="text-sm font-semibold text-[#2563eb]">
+                        <span className={`text-sm font-semibold ${rewardDisabled ? "text-gray-400" : "text-[#2563eb]"}`}>
                           {ethers.utils.formatEther(r.price)} ETH
                         </span>
                       </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-[#6b7280]">
-                    등록된 리워드가 없습니다.
-                  </p>
-                )
+                    );
+                  })}
+                </div>
               ) : (
-                <p className="text-sm text-red-500">
-                  후원이 불가능합니다.{" "}
-                  {isDeadlineOver
-                    ? "마감일이 지났습니다."
-                    : `상태: ${getStatusLabel(project.status)}`}
+                <p className="text-sm text-[#6b7280]">등록된 리워드가 없습니다.</p>
+              )}
+
+              {/* 기존의 “후원 불가” 메시지는 아래에 추가 */}
+              {!canFund && (
+                <p className="text-sm text-red-500 pt-2">
+                  후원 기간이 종료되어 클릭할 수 없습니다.
                 </p>
               )}
             </div>
