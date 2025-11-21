@@ -9,15 +9,16 @@ module.exports = {
       network_id: '*'
     },
     sepolia: {
-      provider: () => new HDWalletProvider({
-        privateKeys: [process.env.PRIVATE_KEY],   // ← 여기 중요!
-        providerOrUrl: process.env.ALCHEMY_URL,
-      }),
+      provider: () => new HDWalletProvider(
+        [process.env.PRIVATE_KEY],        // ✅ 배열로 감싸기
+        process.env.ALCHEMY_URL
+      ),
       network_id: 11155111,
-      gas: 10000000,
-      gasPrice: 10000000000, 
+        gas: 10000000,           // 🔼 기존보다 2배로 증가
+        gasPrice: 10000000000,  // 10 gwei 유지
+
       timeoutBlocks: 200,
-      skipDryRun: true,
+      skipDryRun: true
     },
   },
 

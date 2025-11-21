@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { FUNDVOTE_ABI, CONTRACT_ADDRESS } from "../web3/FundVoteContract";
+import { FundVoteABI, CONTRACT_ADDRESS } from "../web3/FundVoteContract";
 
 export default function VotingPanel({ projectId, projectCreator }) {
   const [currentRound, setCurrentRound] = useState(0);
@@ -20,7 +20,7 @@ export default function VotingPanel({ projectId, projectCreator }) {
   async function loadVoteInfo() {
     if (!window.ethereum) return;
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, FUNDVOTE_ABI, provider);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, provider);
 
     try {
       const round = await contract.currentRound(projectId);
@@ -63,7 +63,7 @@ export default function VotingPanel({ projectId, projectCreator }) {
         return;
       }
 
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, FUNDVOTE_ABI, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
       const tx = await contract.openVoteRound(projectId);
       await tx.wait();
 
@@ -80,7 +80,7 @@ export default function VotingPanel({ projectId, projectCreator }) {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       provider.pollingInterval = 500;
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, FUNDVOTE_ABI, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
 
       const tx = await contract.voteOnRound(projectId, approve);
       await tx.wait();
@@ -106,7 +106,7 @@ export default function VotingPanel({ projectId, projectCreator }) {
     try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, FUNDVOTE_ABI, signer);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
 
       const [yes, no] = await contract.getCurrentVotePercentage(projectId);
       if (yes.toNumber() + no.toNumber() === 0) {
