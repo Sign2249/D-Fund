@@ -30,7 +30,7 @@ contract ExpertReview {
     );
 
     modifier onlyBeforeDeadline(uint _projectId) {
-        require(block.timestamp < projectDeadline[_projectId] - 60, "Review period has ended");
+        require(block.timestamp < projectDeadline[_projectId] - 10, "Review period has ended");
         _;
     }
 
@@ -111,4 +111,5 @@ contract ExpertReview {
     {
         return projectReviews[_projectId].comments[reviewer];
     }
+
 }

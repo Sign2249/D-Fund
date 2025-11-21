@@ -15,6 +15,16 @@ module.exports = {
         card: "#ffffff",
         "card-border": "#e5e7eb",
       },
+      keyframes: {
+        float: {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
+      },
+      animation: {
+        float: "float 4s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

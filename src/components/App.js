@@ -9,6 +9,7 @@ import AllProjects from './AllProjects';
 import ProjectDetail from './ProjectDetail';
 import ExpertReviewPage from './ExpertReviewPage';
 import CommunitySetup from './CommunitySetup';
+import ServiceIntro from "./ServiceIntro";
 
 function App() {
   const navLinkStyle = {
@@ -28,12 +29,11 @@ function App() {
           fontFamily: 'Apple SD Gothic Neo, sans-serif',
           backgroundColor: '#fff',
         }}>
-          <Link to="/" style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem', textDecoration: 'none', color: '#222' }}>D-Fund</Link>
-
           <nav style={{ display: 'flex', gap: '1rem' }}>
             <Link to="/" style={navLinkStyle}>홈</Link>
             <Link to="/register" style={navLinkStyle}>프로젝트 등록</Link>
             <Link to="/projects" style={navLinkStyle}>전체 프로젝트 보기</Link>
+            <Link to="/service-intro" style={navLinkStyle}>DFund에 대해</Link>
           </nav>
         </header>
 
@@ -45,6 +45,7 @@ function App() {
             <Route path="/project/:id" element={<ProjectDetail />} />
             <Route path="/project/:id/expert-review" element={<ExpertReviewPage />} />
             <Route path="/project/:id/community-setup" element={<CommunitySetup />} />
+            <Route path="/service-intro" element={<ServiceIntro />} />
           </Routes>
         </main>
 

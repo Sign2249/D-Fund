@@ -30,6 +30,11 @@ abstract contract FundStorage {
     uint price;       // 리워드 금액 (ETH 단위, Wei로 저장)
     }
 
+    // --- 전문가 모듈 주소 저장 ---
+    address public expertReviewContract;
+    address public expertReputationContract;
+    address public expertRewardContract;
+
     mapping(uint => Reward[]) public projectRewards;
     mapping(uint => mapping(address => uint[])) public donorRewards; // 프로젝트별 후원자 -> 선택한 리워드 인덱스 배열
 

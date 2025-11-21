@@ -104,4 +104,24 @@ contract DFundCore is FundStorage, ProjectManager, FundLogic {
     function forceFail(uint projectId) external {
         _changeProjectStatusAndRefund(projectId, uint8(ProjectStatus.FAILED));
     }
+
+    function setExpertModules(
+        address _review,
+        address _reputation,
+        address _reward
+    ) public override {
+        super.setExpertModules(_review, _reputation, _reward);
+    }
+
+    function getExpertModules()
+        external
+        view
+        returns (address review, address reputation, address reward)
+    {
+        return (
+            expertReviewContract,
+            expertReputationContract,
+            expertRewardContract
+        );
+    }
 }

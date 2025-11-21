@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import Swal from 'sweetalert2';
 
-import DFundABI from '../truffle_abis/DFund.json';
+import DFundABI from '../truffle_abis/DFundCore.json';
 import { CONTRACT_ADDRESS } from '../web3/DFundContract';
 import { CONTRACT_ADDRESS as VOTING_NFT_ADDRESS } from "../web3/VotingPowerNFTContract";
 import { 
