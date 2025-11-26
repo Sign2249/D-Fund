@@ -137,8 +137,8 @@ function AllProjects() {
                     </span>
 
                     <span className="text-[#6b7280]">
-                      {Number(project.fundedAmount).toFixed(2)} /{" "}
-                      {Number(project.goalAmount).toFixed(2)} ETH
+                      {Number(project.fundedAmount).toFixed(3)} /{" "}
+                      {Number(project.goalAmount).toFixed(3)} ETH
                     </span>
                   </div>
 
