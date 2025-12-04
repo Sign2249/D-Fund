@@ -221,7 +221,7 @@ function ProjectDetail() {
         const total = await contract.getTotalDonated(id);
         const funds = await contract.projectFunds(id);
         const remaining = Number(total) - Number(funds.transferredToCreator);
-        const rewardAmount = remaining * 0.1;
+        const rewardAmount = Number(total) * 0.1;
 
         const sumMultiplier = multipliers.reduce((a, b) => a + b, 0) || 1;
 
