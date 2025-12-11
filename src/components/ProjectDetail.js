@@ -265,57 +265,78 @@ function ProjectDetail() {
   // 리워드 선택 후 후원
   const handleFundWithReward = async (rewardIndex, rewardPrice) => {
     if (!window.ethereum) {
-      alert("Metamask가 필요합니다.");
-      return;
-    }
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        DFundCoreABI.abi,
-        signer
-      );
-
-      const tx = await contract.donateWithReward(project.id, rewardIndex, {
-        value: rewardPrice,
-      });
-      await tx.wait();
-
-      Swal.fire("성공", "리워드 후원이 완료되었습니다.", "success");
-
-      const updated = await contract.getTotalDonated(project.id);
-      setFundedAmount(ethers.utils.formatEther(updated));
-    } catch (err) {
-      console.error(err);
-      Swal.fire("실패", "후원에 실패했습니다.", "error");
-    }
-  };
-
-  // 금액 직접 입력 후 후원
-  const handleFund = async () => {
-    if (!window.ethereum || !amount) {
-      alert("Metamask가 필요하거나 금액이 필요합니다.");
-      return;
-    }
-    if (parseFloat(amount) <= 0) {
-      Swal.fire("경고", "후원 금액은 0보다 커야 합니다.", "warning");
+      Swal.fire("지갑 연결 필요", "Metamask가 필요합니다.", "error");
       return;
     }
 
     Swal.fire({
-      title: "후원하시겠습니까?",
-      text: `${amount} ETH를 후원합니다.`,
+      title: "리워드 후원",
+      text: `${amount} ETH를 후원하시겠습니까?`,
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#2563eb",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: "예",
-      cancelButtonText: "아니오",
+      confirmButtonText: "후원",
+      cancelButtonText: "취소",
       reverseButtons: true,
     }).then(async (result) => {
       if (!result.isConfirmed) {
-        Swal.fire("취소됨", "후원이 취소되었습니다.", "info");
+        Swal.fire("취소", "후원이 취소되었습니다.", "info");
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          DFundCoreABI.abi,
+          signer
+        );
+
+        const tx = await contract.donateWithReward(project.id, rewardIndex, {
+          value: rewardPrice,
+        });
+        await tx.wait();
+
+        Swal.fire("성공", `${amount} ETH 후원이 완료되었습니다.`, "success");
+
+        const updated = await contract.getTotalDonated(project.id);
+        setFundedAmount(ethers.utils.formatEther(updated));
+      } catch (err) {
+        console.error(err);
+        Swal.fire("실패", "후원에 실패했습니다.", "error");
+      }
+    });
+  };
+
+  // 금액 직접 입력 후 후원
+  const handleFund = async () => {
+    if (!window.ethereum) {
+      Swal.fire("지갑 연결 필요", "Metamask가 필요합니다.", "error");
+      return;
+    }
+    if (!amount) {
+      Swal.fire("입력 확인", "후원할 금액이 입력되지 않았습니다.", "warning");
+      return;
+    }
+    if (parseFloat(amount) <= 0) {
+      Swal.fire("금액 확인", "후원 금액은 0보다 커야 합니다.", "warning");
+      return;
+    }
+
+    Swal.fire({
+      title: "리워드 후원",
+      text: `${amount} ETH를 후원하시겠습니까?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "후원",
+      cancelButtonText: "취소",
+      reverseButtons: true,
+    }).then(async (result) => {
+      if (!result.isConfirmed) {
+        Swal.fire("취소", "후원이 취소되었습니다.", "info");
         return;
       }
       try {
@@ -333,7 +354,7 @@ function ProjectDetail() {
 
         await tx.wait();
 
-        Swal.fire("성공", `${amount} ETH 후원 완료`, "success").then(() => {
+        Swal.fire("성공", `${amount} ETH 후원이 완료되었습니다.`, "success").then(() => {
           navigate(`/project/${project.id}/community-setup`);
         });
 
@@ -460,10 +481,7 @@ function ProjectDetail() {
       const tx = await contract.endFundingPhase(project.id);
       await tx.wait();
 
-      Swal.fire(
-        "완료",
-        "후원 마감이 완료되었습니다. 이후 단계별 투표가 진행됩니다.",
-        "success"
+      Swal.fire("완료", "후원 마감이 완료되었습니다. 이후 단계별 투표가 진행됩니다.", "success"
       ).then(() => window.location.reload());
     } catch (err) {
       console.error("후원 마감 중 오류:", err);
@@ -474,7 +492,7 @@ function ProjectDetail() {
   // 전문가 평가 페이지로 이동
   const handleExpertReviewClick = async () => {
     if (!project.expertReviewRequested) {
-      alert("전문가 사전 심사를 선택하지 않은 프로젝트입니다.");
+      Swal.fire("안내", "전문가 평가를 선택하지 않은 프로젝트입니다.", "info");
       return;
     }
 
@@ -482,7 +500,7 @@ function ProjectDetail() {
     const isBeforeDeadline =
       now.getTime() < project.deadline.getTime() - 10000;
     if (!isBeforeDeadline) {
-      alert("⚠ 전문가 평가는 마감 10초 전까지만 가능합니다.");
+      Swal.fire("평가 불가", "전문가 평가는 마감 10초 전까지만 가능합니다.", "warning");
       return;
     }
 
@@ -500,20 +518,20 @@ function ProjectDetail() {
         addr
       );
       if (alreadyReviewed) {
-        alert("이미 평가한 전문가입니다.");
+        Swal.fire("평가 완료", "이미 전문가 평가를 완료하였습니다.", "warning");
         return;
       }
       navigate(`/project/${project.id}/expert-review`);
     } catch (err) {
       console.error("전문가 평가 여부 확인 오류:", err);
-      alert("전문가 평가 확인 중 오류가 발생했습니다.");
+      Swal.fire("오류", "전문가 평가 확인 중 오류가 발생했습니다.", "error");
     }
   };
 
   // 내 Voting NFT 조회
   const handleCheckMyNFTs = async () => {
     if (!window.ethereum) {
-      alert("Metamask가 필요합니다.");
+      Swal.fire("지갑 연결 필요", "Metamask가 필요합니다.", "error");
       return;
     }
     try {
@@ -539,7 +557,7 @@ function ProjectDetail() {
       setMyNFTs([{ tokenId: tokenId.toString(), power: formattedPower }]);
     } catch (err) {
       console.error("NFT 조회 오류:", err);
-      alert("NFT 조회 실패");
+      Swal.fire("실패", "NFT 정보를 불러오는 데 실패하였습니다.", "error");
     }
   };
 
