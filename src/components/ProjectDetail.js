@@ -363,7 +363,7 @@ function ProjectDetail() {
         setFundedAmount(ethers.utils.formatEther(updated));
       } catch (err) {
         console.error(err);
-        Swal.fire("실패", "알 수 없는 오류로 후원을 실패했습니다.", "error");
+        Swal.fire("실패", "후원에 실패했습니다.", "error");
       }
     });
   };
@@ -473,19 +473,39 @@ function ProjectDetail() {
         return;
       }
 
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        DFundCoreABI.abi,
-        signer
-      );
-      const tx = await contract.endFundingPhase(project.id);
-      await tx.wait();
+      Swal.fire({
+        title: "후원 마감",
+        text: "프로젝트 후원을 마감하시겠습니까?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "개시",
+        cancelButtonText: "취소",
+        reverseButtons: true,
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          Swal.fire("취소", "후원 마감이 취소되었습니다.", "info");
+        }
+        try {
+          const contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            DFundCoreABI.abi,
+            signer
+          );
+          const tx = await contract.endFundingPhase(project.id);
+          await tx.wait();
 
-      Swal.fire("완료", "후원 마감이 완료되었습니다. 이후 단계별 투표가 진행됩니다.", "success"
-      ).then(() => window.location.reload());
+          Swal.fire("완료", "후원 마감이 완료되었습니다. 이후 단계별 투표가 진행됩니다.", "success"
+          ).then(() => window.location.reload());
+        } catch (err) {
+          console.error("후원 마감 중 오류:", err);
+          Swal.fire("실패", "후원 마감 중 오류가 발생했습니다.", "error");
+        }
+      });
+
     } catch (err) {
-      console.error("후원 마감 중 오류:", err);
-      Swal.fire("실패", "후원 마감 중 오류가 발생했습니다.", "error");
+      console.error("초기 설정 오류", err);
     }
   };
 

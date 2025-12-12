@@ -2,7 +2,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
+import Swal from "sweetalert2";
+
 import ExpertReviewABI from '../truffle_abis/ExpertReview.json';
+
 import { CONTRACT_ADDRESS } from '../web3/ExpertReviewContract';
 
 function ExpertReviewPage() {
@@ -16,29 +19,44 @@ function ExpertReviewPage() {
 
   const handleSubmit = async () => {
     if (strength === null) {
-      alert('평가 강도를 선택해주세요.');
+      Swal.fire("선택 확인", "평가 강도를 선택해주세요.", "warning");
       return;
     }
     if (!comment.trim()) {
-      alert('한줄평을 입력해주세요.');
+      Swal.fire("입력 확인", "한줄평을 입력해주세요.", "warning");
       return;
     }
 
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, ExpertReviewABI.abi, signer);
+    Swal.fire({
+      title: "평가 제출",
+      text: "작성하신 평가를 제출하시겠습니까?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "후원",
+      cancelButtonText: "취소",
+      reverseButtons: true,
+    }).then(async (result) => {
+      if (!result.isConfirmed) {
+        Swal.fire("취소", "평가 제출이 취소되었습니다.", "info");
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ExpertReviewABI.abi, signer);
 
-      // ✅ strength(0~3) enum 전달
-      const tx = await contract.submitReview(id, strength, comment);
-      await tx.wait();
+        // ✅ strength(0~3) enum 전달
+        const tx = await contract.submitReview(id, strength, comment);
+        await tx.wait();
 
-      alert('평가가 성공적으로 등록되었습니다!');
-      setTimeout(() => navigate(`/project/${id}`), 1500);
-    } catch (error) {
-      console.error(error);
-      alert('평가 제출 중 오류가 발생했습니다.');
-    }
+        Swal.fire("성공", "평가가 성공적으로 등록되었습니다.", "success");
+        setTimeout(() => navigate(`/project/${id}`), 1500);
+      } catch (error) {
+        console.error(error);
+        Swal.fire("실패", "평가 제출 중 오류가 발생했습니다.", "error");
+      }
+    })
   };
 
   return (

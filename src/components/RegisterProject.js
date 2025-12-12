@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import Swal from "sweetalert2";
 
 import DFundCoreABI from "../truffle_abis/DFundCore.json";
 import ExpertReviewABI from "../truffle_abis/ExpertReview.json";
@@ -51,6 +52,7 @@ export default function RegisterProject() {
       return `https://gateway.pinata.cloud/ipfs/${res.data.IpfsHash}`;
     } catch (err) {
       console.error("Pinata 업로드 실패:", err);
+      Swal.fire("업로드 실패", "이미지 업로드 중 오류가 발생했습니다.", "error");
       return "";
     }
   };
@@ -79,71 +81,87 @@ export default function RegisterProject() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!window.ethereum) {
-      alert("Metamask가 필요합니다.");
+      Swal.fire("지갑 연결 필요", "Metamask가 필요합니다.", "error");
       return;
     }
 
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        DFundCoreABI.abi,
-        signer
-      );
-
-      const goalInWei = ethers.utils.parseEther(goalAmount);
-      const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
-      const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
-      const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);
-
-      const rewardData = rewards.map((r) => ({
-        name: r.name,
-        price: ethers.utils.parseEther(r.price || "0"),
-      }));
-
-      const tx = await contract.registerProject(
-        title,
-        description,
-        mainImageUrl || "",
-        detailImageUrls || [],
-        goalInWei,
-        startTimestamp,
-        endTimestamp,
-        deadlineTimestamp,
-        expertReviewRequested,
-        rewardData
-      );
-
-      setStatus("등록 중...");
-      await tx.wait();
-
-      const projectCount = await contract.projectCount();
-      const project = await contract.projects(projectCount);
-
-      if (expertReviewRequested) {
-        const reviewContract = new ethers.Contract(
-          REVIEW_CONTRACT_ADDRESS,
-          ExpertReviewABI.abi,
+    Swal.fire({
+      title: "프로젝트 등록",
+      text: "프로젝트를 등록하시겠습니까?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "등록",
+      cancelButtonText: "취소",
+      reverseButtons: true,
+    }).then(async (result) => {
+      if (!result.isConfirmed) {
+        Swal.fire("취소", "프로젝트 등록이 취소되었습니다.", "info");
+        return;
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          DFundCoreABI.abi,
           signer
         );
-        const enableTx = await reviewContract.enableReview(
-          projectCount,
-          deadlineTimestamp
-        );
-        await enableTx.wait();
-      }
 
-      if (project && project.title.length > 0) {
-        setStatus(`등록 성공! 프로젝트 ID: ${projectCount}`);
-        navigate("/projects");
-      } else {
-        setStatus("등록 확인 실패. 다시 시도해주세요.");
+        const goalInWei = ethers.utils.parseEther(goalAmount);
+        const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+        const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
+        const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000);
+
+        const rewardData = rewards.map((r) => ({
+          name: r.name,
+          price: ethers.utils.parseEther(r.price || "0"),
+        }));
+
+        const tx = await contract.registerProject(
+          title,
+          description,
+          mainImageUrl || "",
+          detailImageUrls || [],
+          goalInWei,
+          startTimestamp,
+          endTimestamp,
+          deadlineTimestamp,
+          expertReviewRequested,
+          rewardData
+        );
+
+        setStatus("등록 중...");
+        await tx.wait();
+
+        const projectCount = await contract.projectCount();
+        const project = await contract.projects(projectCount);
+
+        if (expertReviewRequested) {
+          const reviewContract = new ethers.Contract(
+            REVIEW_CONTRACT_ADDRESS,
+            ExpertReviewABI.abi,
+            signer
+          );
+          const enableTx = await reviewContract.enableReview(
+            projectCount,
+            deadlineTimestamp
+          );
+          await enableTx.wait();
+        }
+
+        if (project && project.title.length > 0) {
+          setStatus(`등록 성공! 프로젝트 ID: ${projectCount}`);
+          navigate("/projects");
+        } else {
+          setStatus("등록 확인 실패. 다시 시도해주세요.");
+        }
+      } catch (error) {
+        console.error(error);
+        Swal.fire("실패", "프로젝트 등록에 실패했습니다.", "error");
       }
-    } catch (error) {
-      console.error(error);
-      alert("등록 실패. 다시 시도해주세요.");
-    }
+    });
   };
 
   /*-----------------------------------------
