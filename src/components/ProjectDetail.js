@@ -40,6 +40,7 @@ function ProjectDetail() {
   const [userAddress, setUserAddress] = useState(null);
 
   const [expertStats, setExpertStats] = useState([]);
+  const [projectNFTs, setProjectNFTs] = useState([]);
 
   /* ---------------------- 공통 유틸 ---------------------- */
 
@@ -581,6 +582,30 @@ function ProjectDetail() {
     }
   };
 
+  const handleShowProjectNFTs = async () => {
+  try {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const nftContract = new ethers.Contract(
+      VOTING_NFT_ADDRESS,
+      VotingPowerNFTABI.abi,
+      provider
+    );
+
+    // ✅ 프로젝트별 tokenId 목록 불러오기
+    const tokenIds = await nftContract.getProjectTokenIds(project.id);
+    console.log("해당 프로젝트 NFT:", tokenIds);
+
+    const nftList = [];
+    for (let i = 0; i < tokenIds.length; i++) {
+      const uri = await nftContract.tokenURI(tokenIds[i]);
+      nftList.push({ tokenId: tokenIds[i].toString(), uri });
+    }
+    setProjectNFTs(nftList);
+  } catch (error) {
+    console.error("NFT 조회 오류:", error);
+  }
+};
+
   /* ---------------------- 렌더링 ---------------------- */
 
   if (status) {
@@ -847,6 +872,35 @@ function ProjectDetail() {
                         {myNFTs[0].power}
                       </span>
                     </p>
+                  </div>
+                )}
+              </div>
+              <div style={{ marginTop: "2rem" }}>
+                <button
+                  onClick={handleShowProjectNFTs}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "#2563eb",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                  }}
+                >
+                  프로젝트 발행 NFT 보기
+                </button>
+
+                {projectNFTs.length > 0 && (
+                  <div style={{ marginTop: "1.5rem" }}>
+                    <h3>프로젝트 발행 NFT 목록</h3>
+                    <ul style={{ paddingLeft: "1rem" }}>
+                      {projectNFTs.map((nft, idx) => (
+                        <li key={idx} style={{ marginBottom: "0.5rem" }}>
+                          Token #{nft.tokenId} | URI: {nft.uri}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
