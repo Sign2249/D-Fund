@@ -481,12 +481,13 @@ function ProjectDetail() {
         showCancelButton: true,
         confirmButtonColor: "#2563eb",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "개시",
+        confirmButtonText: "마감",
         cancelButtonText: "취소",
         reverseButtons: true,
       }).then(async (result) => {
         if (!result.isConfirmed) {
           Swal.fire("취소", "후원 마감이 취소되었습니다.", "info");
+          return;
         }
         try {
           const contract = new ethers.Contract(

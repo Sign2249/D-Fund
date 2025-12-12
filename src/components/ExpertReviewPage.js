@@ -34,12 +34,13 @@ function ExpertReviewPage() {
       showCancelButton: true,
       confirmButtonColor: "#2563eb",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: "후원",
+      confirmButtonText: "제출",
       cancelButtonText: "취소",
       reverseButtons: true,
     }).then(async (result) => {
       if (!result.isConfirmed) {
         Swal.fire("취소", "평가 제출이 취소되었습니다.", "info");
+        return;
       }
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);

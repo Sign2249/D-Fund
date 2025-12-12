@@ -105,12 +105,13 @@ export default function VotingPanel({ projectId, projectCreator }) {
       showCancelButton: true,
       confirmButtonColor: "#2563eb",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: "개시",
+      confirmButtonText: "투표",
       cancelButtonText: "취소",
       reverseButtons: true,
     }).then(async (result) => {
       if (!result.isConfirmed) {
         Swal.fire("취소", "투표가 취소되었습니다.", "info");
+        return;
       }
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -158,12 +159,13 @@ export default function VotingPanel({ projectId, projectCreator }) {
         showCancelButton: true,
         confirmButtonColor: "#2563eb",
         cancelButtonColor: "#6b7280",
-        confirmButtonText: "개시",
+        confirmButtonText: "마감",
         cancelButtonText: "취소",
         reverseButtons: true,
       }).then(async (result) => {
         if (!result.isConfirmed) {
           Swal.fire("취소", "투표 마감이 취소되었습니다.", "info");
+          return;
         }
         try {
           const tx = await contract.finalizeVote(projectId);
