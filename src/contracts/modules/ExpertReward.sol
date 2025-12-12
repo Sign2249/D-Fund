@@ -18,17 +18,7 @@ contract ExpertReward is IExpertReward {
     /// 💰 평판 기반 multiplier
     /// ------------------------------------------------------------
     function getMultiplier(uint score) public pure returns (uint256) {
-        if (score <= 4) return 85;
-        if (score <= 14) return 88;
-        if (score <= 24) return 91;
-        if (score <= 34) return 94;
-        if (score <= 44) return 97;
-        if (score <= 54) return 100;
-        if (score <= 64) return 103;
-        if (score <= 74) return 106;
-        if (score <= 84) return 109;
-        if (score <= 94) return 112;
-        return 115;
+        return score * score / 100;
     }
 
     /// ------------------------------------------------------------
