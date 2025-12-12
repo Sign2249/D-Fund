@@ -14,6 +14,7 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
     mapping(uint => mapping(address => uint)) public donorTotalAmount;
     // 1인 1NFT: projectId => donor => tokenId
     mapping(uint => mapping(address => uint)) public donorTokenId;
+    mapping(uint => uint[]) public projectTokenIds;
 
     event VotingNFTMinted(uint indexed projectId, address indexed donor, uint tokenId, uint amountWei);
     event VotingPowerUpdated(uint indexed projectId, address indexed donor, uint totalAmountWei);
@@ -53,8 +54,15 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         _safeMint(donor, tokenId);
         _setTokenURI(tokenId, "ipfs://example_metadata");
 
+        projectTokenIds[projectId].push(tokenId);
+
+
         emit VotingNFTMinted(projectId, donor, tokenId, amountWei);
         return tokenId;
+    }
+
+    function getProjectTokenIds(uint projectId) external view returns (uint[] memory) {
+        return projectTokenIds[projectId];
     }
 
     function getVotingPower(uint projectId, address donor) external view returns (uint) {
@@ -81,6 +89,7 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         internal
         override(ERC721, ERC721Enumerable)
     {
+        require(from == address(0) || to == address(0), "Err: SBT is non-transferable");
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
