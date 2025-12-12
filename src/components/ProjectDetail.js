@@ -227,13 +227,11 @@ function ProjectDetail() {
         const sumMultiplier = multipliers.reduce((a, b) => a + b, 0) || 1;
 
         const finalList = list.map((e) => {
-          const expectedReward =
-            (e.multiplier / sumMultiplier) * rewardAmount;
+          const expectedReward = (e.multiplier / sumMultiplier) * rewardAmount / 1e18;
+
           return {
             ...e,
-            expectedReward: ethers.utils.formatEther(
-              expectedReward.toString()
-            ),
+            expectedReward: expectedReward.toFixed(6), // 소수점 6자리까지 표시
           };
         });
 
