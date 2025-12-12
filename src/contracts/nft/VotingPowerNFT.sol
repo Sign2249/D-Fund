@@ -81,6 +81,7 @@ contract VotingPowerNFT is ERC721Enumerable, ERC721URIStorage, Ownable {
         internal
         override(ERC721, ERC721Enumerable)
     {
+        require(from == address(0) || to == address(0), "Err: SBT is non-transferable");
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 

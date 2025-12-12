@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { FundVoteABI, CONTRACT_ADDRESS } from "../web3/FundVoteContract";
+import Swal from "sweetalert2";
 
 export default function VotingPanel({ projectId, projectCreator }) {
   const [currentRound, setCurrentRound] = useState(0);
@@ -59,47 +60,83 @@ export default function VotingPanel({ projectId, projectCreator }) {
       const user = await signer.getAddress();
 
       if (user.toLowerCase() !== projectCreator.toLowerCase()) {
-        alert("⚠️ 프로젝트 생성자만 투표를 개시할 수 있습니다.");
+        Swal.fire("권한 없음", "창작자만 투표를 개시할 수 있습니다.", "warning");
         return;
       }
 
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
-      const tx = await contract.openVoteRound(projectId);
-      await tx.wait();
+      Swal.fire({
+        title: "투표 개시",
+        text: "새로운 투표 라운드를 시작하시겠습니까?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "개시",
+        cancelButtonText: "취소",
+        reverseButtons: true,
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          Swal.fire("취소", "투표 개시가 취소되었습니다.", "info");
+          return; 
+        }
+        try {
+          const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
+          const tx = await contract.openVoteRound(projectId);
+          await tx.wait();
 
-      alert("✅ 투표 라운드가 개시되었습니다!");
-      loadVoteInfo();
+          Swal.fire("성공", "투표가 개시되었습니다.", "success");
+          loadVoteInfo();
+        } catch (err) {
+          console.error(err);
+          Swal.fire("실패", "투표 개시에 실패했습니다.", "error");
+        }
+    });
+
     } catch (err) {
-      console.error(err);
-      alert("투표 개시 실패");
+      console.error("초기 설정 오류", err);
     }
   }
 
   async function handleVote(approve) {
-    try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      provider.pollingInterval = 500;
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
+    Swal.fire({
+      title: `${approve ? "찬성" : "반대"} 투표`,
+      text: `${approve ? "찬성" : "반대"}에 투표하시겠습니까? 투표 후에는 변경할 수 없습니다.`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#2563eb",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "개시",
+      cancelButtonText: "취소",
+      reverseButtons: true,
+    }).then(async (result) => {
+      if (!result.isConfirmed) {
+        Swal.fire("취소", "투표가 취소되었습니다.", "info");
+      }
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        provider.pollingInterval = 500;
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, FundVoteABI, signer);
 
-      const tx = await contract.voteOnRound(projectId, approve);
-      await tx.wait();
+        const tx = await contract.voteOnRound(projectId, approve);
+        await tx.wait();
 
-      await new Promise((r) => setTimeout(r, 1500));
-      await loadVoteInfo();
+        await new Promise((r) => setTimeout(r, 1500));
+        await loadVoteInfo();
 
-      alert(`✅ 투표 완료 (${approve ? "찬성" : "반대"})`);
-      setHasVoted(true);
-    } catch (err) {
-      console.error(err);
-      alert("투표 실패");
-    }
+        Swal.fire("투표 완료", `${approve ? "찬성" : "반대"} 투표가 성공적으로 반영되었습니다.`, "success");
+        setHasVoted(true);
+      } catch (err) {
+        console.error(err);
+        Swal.fire("실패", "투표에 실패하였습니다.", "error");
+      }
+    });
   }
 
   async function handleFinalize() {
     const now = Math.floor(Date.now() / 1000);
     if (now < endTime) {
-      alert("⚠️ 아직 투표 마감 시간이 되지 않았습니다.");
+      Swal.fire("안내", "마감 시간 이후에만 투표를 마감할 수 있습니다.", "info");
       return;
     }
 
@@ -110,18 +147,37 @@ export default function VotingPanel({ projectId, projectCreator }) {
 
       const [yes, no] = await contract.getCurrentVotePercentage(projectId);
       if (yes.toNumber() + no.toNumber() === 0) {
-        alert("❌ 아직 투표가 없습니다.");
+        Swal.fire("안내", "개시된 투표가 없습니다.", "info");
         return;
       }
 
-      const tx = await contract.finalizeVote(projectId);
-      await tx.wait();
+      Swal.fire({
+        title: "투표 마감",
+        text: "현재 투표 라운드를 마감하시겠습니까?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "개시",
+        cancelButtonText: "취소",
+        reverseButtons: true,
+      }).then(async (result) => {
+        if (!result.isConfirmed) {
+          Swal.fire("취소", "투표 마감이 취소되었습니다.", "info");
+        }
+        try {
+          const tx = await contract.finalizeVote(projectId);
+          await tx.wait();
 
-      alert("✅ 투표가 정상적으로 마감되었습니다!");
-      loadVoteInfo();
+          Swal.fire("성공", "투표가 마감되었습니다.", "success");
+          loadVoteInfo();
+        } catch (err) {
+          console.error("투표 마감 실패:", err);
+          Swal.fire("실패", "투표 마감 중 오류가 발생하였습니다.", "error");
+        }
+      });      
     } catch (err) {
-      console.error("투표 마감 실패:", err);
-      alert("❌ 투표 마감 중 오류 발생");
+      console.error("초기 설정 오류", err);
     }
   }
 
